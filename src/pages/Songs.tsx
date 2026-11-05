@@ -10,8 +10,6 @@ export function Songs() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
-  const [title, setTitle] = useState('')
-  const [artist, setArtist] = useState('')
   const [url, setUrl] = useState('')
   const [submittedBy, setSubmittedBy] = useState('')
 
@@ -52,13 +50,11 @@ export function Songs() {
 
     setSubmitting(true)
     try {
-      const song = await createSong({ title, artist, url, submittedBy })
+      const song = await createSong({ url, submittedBy })
       setSongs((prev) => [song, ...prev])
-      setTitle('')
-      setArtist('')
       setUrl('')
       setSubmittedBy('')
-      setSuccess('Música adicionada à playlist!')
+      setSuccess(`Adicionada: ${song.title} — ${song.artist}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Falha ao enviar a música.')
     } finally {
@@ -70,30 +66,10 @@ export function Songs() {
     <section className="page">
       <header className="page-header">
         <h1>Playlist da festa</h1>
-        <p>Manda um link do Spotify ou YouTube. Eu monto a fila e a gente dança.</p>
+        <p>Cola o link do Spotify ou YouTube. O resto a gente descobre.</p>
       </header>
 
       <form className="panel form" onSubmit={onSubmit}>
-        <label>
-          Nome da música
-          <input
-            required
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Ex.: September"
-            autoComplete="off"
-          />
-        </label>
-        <label>
-          Artista
-          <input
-            required
-            value={artist}
-            onChange={(e) => setArtist(e.target.value)}
-            placeholder="Ex.: Earth, Wind & Fire"
-            autoComplete="off"
-          />
-        </label>
         <label>
           Link (Spotify ou YouTube)
           <input
@@ -117,7 +93,7 @@ export function Songs() {
         {error ? <p className="form-msg form-msg-error">{error}</p> : null}
         {success ? <p className="form-msg form-msg-ok">{success}</p> : null}
         <button className="btn btn-primary" type="submit" disabled={submitting || !isSupabaseConfigured}>
-          {submitting ? 'Enviando…' : 'Adicionar à playlist'}
+          {submitting ? 'Descobrindo e enviando…' : 'Adicionar à playlist'}
         </button>
       </form>
 
