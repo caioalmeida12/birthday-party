@@ -461,7 +461,7 @@ main {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
-  align-items: baseline;
+  align-items: flex-start;
   padding: 0.85rem 0;
   border-bottom: 1px solid rgba(247, 231, 194, 0.08);
   animation: rise 0.45s ease-out both;
@@ -469,6 +469,99 @@ main {
 
 .song-item:last-child {
   border-bottom: none;
+}
+
+.song-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.song-item-skipped {
+  opacity: 0.55;
+}
+
+.song-item-skipped .song-main a,
+.song-item-skipped .queue-jump strong {
+  text-decoration: line-through;
+}
+
+.song-queue-row {
+  display: grid;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.vote-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.vote-btn {
+  border: 1px solid rgba(247, 231, 194, 0.2);
+  background: rgba(13, 31, 24, 0.55);
+  color: rgba(247, 231, 194, 0.85);
+  border-radius: 999px;
+  padding: 0.35rem 0.65rem;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.vote-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.vote-btn-active-up {
+  border-color: rgba(111, 207, 151, 0.7);
+  color: var(--ok);
+  background: rgba(111, 207, 151, 0.12);
+}
+
+.vote-btn-active-down {
+  border-color: rgba(232, 106, 92, 0.7);
+  color: var(--danger);
+  background: rgba(232, 106, 92, 0.12);
+}
+
+.vote-btn-skip-on {
+  border-color: rgba(240, 180, 41, 0.7);
+  color: var(--amber);
+}
+
+.vote-score {
+  min-width: 1.75rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: rgba(247, 231, 194, 0.7);
+}
+
+.vote-score-pos {
+  color: var(--ok);
+}
+
+.vote-score-neg {
+  color: var(--danger);
+}
+
+.btn-danger-ghost {
+  box-shadow: inset 0 0 0 1.5px rgba(232, 106, 92, 0.55);
+  color: #f0a39b;
+}
+
+.btn-danger-ghost:hover {
+  color: #ffc4be;
+  box-shadow: inset 0 0 0 1.5px #f0a39b;
+}
+
+.now-playing .vote-controls {
+  margin-top: 0.85rem;
 }
 
 .song-item a {

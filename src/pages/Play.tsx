@@ -1,6 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
+import { SongVoteControls } from '../components/SongVoteControls'
 import { resolvePlayableVideoId } from '../lib/resolvePlayable'
-import { listSongs, type Song } from '../lib/songs'
+import {
+  castSongVote,
+  listSongs,
+  skipSong,
+  sortSongsForQueue,
+  subscribeToPlaylist,
+  unskipSong,
+  type Song,
+} from '../lib/songs'
 import { isSupabaseConfigured } from '../lib/supabase'
 import {
   loadYouTubeApi,
@@ -14,15 +23,18 @@ type PlayerStatus = 'idle' | 'loading' | 'playing' | 'paused' | 'error'
 
 export function Play() {
   const [songs, setSongs] = useState<Song[]>([])
+  const [queue, setQueue] = useState<Song[]>([])
   const [loading, setLoading] = useState(isSupabaseConfigured)
   const [index, setIndex] = useState(0)
   const [status, setStatus] = useState<PlayerStatus>('idle')
   const [error, setError] = useState<string | null>(null)
   const [started, setStarted] = useState(false)
+  const [votingId, setVotingId] = useState<string | null>(null)
 
   const playerRef = useRef<YouTubePlayer | null>(null)
   const indexRef = useRef(0)
-  const songsRef = useRef<Song[]>([])
+  const queueRef = useRef<Song[]>([])
+  const currentIdRef = useRef<string | null>(null)
   const wakeLockRef = useRef<WakeLockSentinel | null>(null)
   const advancingRef = useRef(false)
   const bootstrappedRef = useRef(false)
@@ -33,28 +45,62 @@ export function Play() {
   }, [index])
 
   useEffect(() => {
-    songsRef.current = songs
-  }, [songs])
+    queueRef.current = queue
+  }, [queue])
+
+  function applySongs(all: Song[], { preferSongId }: { preferSongId?: string | null } = {}) {
+    setSongs(all)
+    const nextQueue = sortSongsForQueue(all)
+    setQueue(nextQueue)
+
+    const preferredId = preferSongId ?? currentIdRef.current
+    if (!preferredId || nextQueue.length === 0) {
+      setIndex(0)
+      currentIdRef.current = nextQueue[0]?.id ?? null
+      return nextQueue
+    }
+
+    const found = nextQueue.findIndex((song) => song.id === preferredId)
+    if (found >= 0) {
+      setIndex(found)
+      currentIdRef.current = preferredId
+    } else {
+      setIndex(0)
+      currentIdRef.current = nextQueue[0]?.id ?? null
+    }
+    return nextQueue
+  }
+
+  async function refreshSongs(preferSongId?: string | null) {
+    const data = await listSongs()
+    return applySongs(data, { preferSongId })
+  }
 
   useEffect(() => {
     if (!isSupabaseConfigured) return
 
-    let cancelled = false
+    const loadState = { cancelled: false }
+
     void (async () => {
       try {
-        const data = await listSongs({ ascending: true })
-        if (!cancelled) setSongs(data)
+        const data = await listSongs()
+        if (!loadState.cancelled) applySongs(data)
       } catch (err) {
-        if (!cancelled) {
+        if (!loadState.cancelled) {
           setError(err instanceof Error ? err.message : 'Não foi possível carregar a playlist.')
         }
       } finally {
-        if (!cancelled) setLoading(false)
+        if (!loadState.cancelled) setLoading(false)
       }
     })()
 
+    const unsubscribe = subscribeToPlaylist(() => {
+      void refreshSongs(currentIdRef.current).catch(() => undefined)
+    })
+
     return () => {
-      cancelled = true
+      loadState.cancelled = true
+      unsubscribe()
     }
   }, [])
 
@@ -88,18 +134,19 @@ export function Play() {
   }
 
   async function playSongAt(nextIndex: number, { autoplay }: { autoplay: boolean }) {
-    const queue = songsRef.current
-    if (queue.length === 0) return
+    const currentQueue = queueRef.current
+    if (currentQueue.length === 0) return
 
-    const safeIndex = ((nextIndex % queue.length) + queue.length) % queue.length
-    const song = queue[safeIndex]
+    const safeIndex = ((nextIndex % currentQueue.length) + currentQueue.length) % currentQueue.length
+    const song = currentQueue[safeIndex]
     setIndex(safeIndex)
+    currentIdRef.current = song.id
     setStatus('loading')
     setError(null)
 
     try {
       const videoId = await resolvePlayableVideoId(song)
-      const upcoming = queue[(safeIndex + 1) % queue.length]
+      const upcoming = currentQueue[(safeIndex + 1) % currentQueue.length]
       if (upcoming && upcoming.id !== song.id) {
         void resolvePlayableVideoId(upcoming).catch(() => undefined)
       }
@@ -130,11 +177,11 @@ export function Play() {
               } else if (event.data === YT_PLAYING) {
                 skipStreakRef.current = 0
                 setStatus('playing')
-                syncMediaSession(songsRef.current[indexRef.current], true)
+                syncMediaSession(queueRef.current[indexRef.current], true)
                 void requestWakeLock()
               } else if (event.data === YT_PAUSED) {
                 setStatus('paused')
-                syncMediaSession(songsRef.current[indexRef.current], false)
+                syncMediaSession(queueRef.current[indexRef.current], false)
               }
             },
             onError: () => {
@@ -164,11 +211,11 @@ export function Play() {
 
   async function advance(delta: number, options?: { fromFailure?: boolean }) {
     if (advancingRef.current) return
-    if (songsRef.current.length === 0) return
+    if (queueRef.current.length === 0) return
 
     if (options?.fromFailure) {
       skipStreakRef.current += 1
-      if (skipStreakRef.current >= songsRef.current.length) {
+      if (skipStreakRef.current >= queueRef.current.length) {
         setStatus('error')
         setError('Não consegui tocar nenhuma faixa da fila.')
         return
@@ -184,11 +231,11 @@ export function Play() {
   }
 
   useEffect(() => {
-    if (!started || bootstrappedRef.current || songs.length === 0) return
+    if (!started || bootstrappedRef.current || queue.length === 0) return
     bootstrappedRef.current = true
     void playSongAt(0, { autoplay: true })
     void requestWakeLock()
-  }, [started, songs.length])
+  }, [started, queue.length])
 
   function togglePlayPause() {
     const player = playerRef.current
@@ -201,6 +248,51 @@ export function Play() {
     } else {
       player.playVideo()
     }
+  }
+
+  async function handleVote(songId: string, vote: 1 | -1) {
+    setVotingId(songId)
+    setError(null)
+    try {
+      const data = await castSongVote(songId, vote)
+      applySongs(data, { preferSongId: currentIdRef.current })
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Falha ao votar.')
+    } finally {
+      setVotingId(null)
+    }
+  }
+
+  async function handleSkipToggle(song: Song) {
+    setVotingId(song.id)
+    setError(null)
+    try {
+      const wasCurrent = song.id === currentIdRef.current
+      const data = song.skipped ? await unskipSong(song.id) : await skipSong(song.id)
+      const nextQueue = applySongs(data, {
+        preferSongId: wasCurrent && !song.skipped ? null : currentIdRef.current,
+      })
+
+      if (started && wasCurrent && !song.skipped) {
+        if (nextQueue.length === 0) {
+          setStatus('idle')
+          setError('Fila vazia — todas as faixas estão em skip.')
+          playerRef.current?.stopVideo()
+        } else {
+          await playSongAt(0, { autoplay: true })
+        }
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Falha ao dar skip.')
+    } finally {
+      setVotingId(null)
+    }
+  }
+
+  async function skipCurrent() {
+    const current = queueRef.current[indexRef.current]
+    if (!current) return
+    await handleSkipToggle(current)
   }
 
   useEffect(() => {
@@ -227,14 +319,19 @@ export function Play() {
     }
   }, [])
 
-  const current = songs[index]
+  const current = queue[index]
+  const board = [...songs].sort((a, b) => {
+    if (a.skipped !== b.skipped) return a.skipped ? 1 : -1
+    if (b.score !== a.score) return b.score - a.score
+    return a.created_at.localeCompare(b.created_at)
+  })
 
   return (
     <section className="page play-page">
       <header className="page-header">
         <h1>Tocar na festa</h1>
         <p>
-          Deixa o celular ligado na caixa via Bluetooth. A playlist toca aqui dentro, em sequência.
+          Bluetooth na caixa, fila por votos. Skip tira a faixa da rotação; upvote sobe na fila.
         </p>
       </header>
 
@@ -244,14 +341,14 @@ export function Play() {
             <p className="muted">
               {loading
                 ? 'Carregando playlist…'
-                : songs.length === 0
-                  ? 'Ainda não tem música na fila.'
-                  : `${songs.length} música(s) na fila.`}
+                : queue.length === 0
+                  ? 'Nada na fila (tudo em skip ou vazio).'
+                  : `${queue.length} música(s) na fila.`}
             </p>
             <button
               className="btn btn-primary btn-lg"
               type="button"
-              disabled={!isSupabaseConfigured || loading || songs.length === 0}
+              disabled={!isSupabaseConfigured || loading || queue.length === 0}
               onClick={() => setStarted(true)}
             >
               Começar a tocar
@@ -272,6 +369,19 @@ export function Play() {
               {current.submitted_by ? (
                 <p className="song-by">sugerida por {current.submitted_by}</p>
               ) : null}
+              <SongVoteControls
+                song={current}
+                disabled={votingId === current.id}
+                onUpvote={(id) => {
+                  void handleVote(id, 1)
+                }}
+                onDownvote={(id) => {
+                  void handleVote(id, -1)
+                }}
+                onSkipToggle={(item) => {
+                  void handleSkipToggle(item)
+                }}
+              />
             </div>
           ) : null}
 
@@ -280,7 +390,7 @@ export function Play() {
               <button
                 className="btn btn-ghost"
                 type="button"
-                disabled={songs.length < 2}
+                disabled={queue.length < 2}
                 onClick={() => {
                   void advance(-1)
                 }}
@@ -293,12 +403,22 @@ export function Play() {
               <button
                 className="btn btn-ghost"
                 type="button"
-                disabled={songs.length < 2}
+                disabled={queue.length < 2}
                 onClick={() => {
                   void advance(1)
                 }}
               >
                 Próxima
+              </button>
+              <button
+                className="btn btn-ghost btn-danger-ghost"
+                type="button"
+                disabled={!current || votingId === current.id}
+                onClick={() => {
+                  void skipCurrent()
+                }}
+              >
+                Skip
               </button>
             </div>
           ) : null}
@@ -309,35 +429,61 @@ export function Play() {
       </div>
 
       <div className="panel list-panel">
-        <h2>Fila</h2>
+        <h2>Fila por votos</h2>
         {loading ? <p className="muted">Carregando…</p> : null}
-        {!loading && songs.length === 0 ? (
+        {!loading && board.length === 0 ? (
           <p className="muted">Nenhuma música ainda — peça pra galera mandar links.</p>
         ) : null}
         <ol className="song-list play-queue">
-          {songs.map((song, songIndex) => (
-            <li
-              key={song.id}
-              className={
-                started && songIndex === index ? 'song-item song-item-active' : 'song-item'
-              }
-            >
-              <button
-                type="button"
-                className="queue-jump"
-                disabled={!started}
-                onClick={() => {
-                  void playSongAt(songIndex, { autoplay: true })
-                }}
+          {board.map((song) => {
+            const queueIndex = queue.findIndex((item) => item.id === song.id)
+            const isCurrent = started && song.id === current?.id
+            return (
+              <li
+                key={song.id}
+                className={[
+                  'song-item',
+                  isCurrent ? 'song-item-active' : '',
+                  song.skipped ? 'song-item-skipped' : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
               >
-                <span className="queue-index">{songIndex + 1}</span>
-                <span>
-                  <strong>{song.title}</strong>
-                  <span className="song-artist">{song.artist}</span>
-                </span>
-              </button>
-            </li>
-          ))}
+                <div className="song-queue-row">
+                  <button
+                    type="button"
+                    className="queue-jump"
+                    disabled={!started || song.skipped}
+                    onClick={() => {
+                      if (queueIndex < 0) return
+                      void playSongAt(queueIndex, { autoplay: true })
+                    }}
+                  >
+                    <span className="queue-index">
+                      {song.skipped ? '—' : queueIndex >= 0 ? queueIndex + 1 : '—'}
+                    </span>
+                    <span>
+                      <strong>{song.title}</strong>
+                      <span className="song-artist">{song.artist}</span>
+                    </span>
+                  </button>
+                  <SongVoteControls
+                    song={song}
+                    disabled={votingId === song.id}
+                    onUpvote={(id) => {
+                      void handleVote(id, 1)
+                    }}
+                    onDownvote={(id) => {
+                      void handleVote(id, -1)
+                    }}
+                    onSkipToggle={(item) => {
+                      void handleSkipToggle(item)
+                    }}
+                  />
+                </div>
+              </li>
+            )
+          })}
         </ol>
       </div>
     </section>
