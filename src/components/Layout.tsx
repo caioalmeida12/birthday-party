@@ -14,6 +14,9 @@ export function Layout() {
           <NavLink to="/musicas" className={({ isActive }) => (isActive ? 'active' : undefined)}>
             Músicas
           </NavLink>
+          <NavLink to="/tocar" className={({ isActive }) => (isActive ? 'active' : undefined)}>
+            Tocar
+          </NavLink>
           <NavLink to="/fotos" className={({ isActive }) => (isActive ? 'active' : undefined)}>
             Fotos
           </NavLink>

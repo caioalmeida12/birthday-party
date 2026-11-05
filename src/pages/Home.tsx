@@ -13,6 +13,9 @@ export function Home() {
           <Link className="btn btn-primary" to="/musicas">
             Sugerir música
           </Link>
+          <Link className="btn btn-ghost" to="/tocar">
+            Tocar playlist
+          </Link>
           <Link className="btn btn-ghost" to="/fotos">
             Enviar foto
           </Link>

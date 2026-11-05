@@ -16,12 +16,12 @@ export type SongInput = {
   submittedBy?: string
 }
 
-export async function listSongs(): Promise<Song[]> {
+export async function listSongs(options?: { ascending?: boolean }): Promise<Song[]> {
   const client = requireSupabase()
   const { data, error } = await client
     .from('songs')
     .select('id, title, artist, url, submitted_by, created_at')
-    .order('created_at', { ascending: false })
+    .order('created_at', { ascending: options?.ascending ?? false })
 
   if (error) throw error
   return data ?? []

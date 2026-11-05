@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 import { createSong, listSongs, type Song } from '../lib/songs'
 import { isSupabaseConfigured } from '../lib/supabase'
 import { isAllowedMusicUrl } from '../lib/urlValidation'
@@ -67,6 +68,11 @@ export function Songs() {
       <header className="page-header">
         <h1>Playlist da festa</h1>
         <p>Cola o link do Spotify ou YouTube. O resto a gente descobre.</p>
+        <p className="page-header-action">
+          <Link className="btn btn-ghost" to="/tocar">
+            Abrir player da festa
+          </Link>
+        </p>
       </header>
 
       <form className="panel form" onSubmit={onSubmit}>
