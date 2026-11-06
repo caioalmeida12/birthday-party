@@ -47,6 +47,10 @@ export function Home() {
             <span className="btn btn-primary">{copy.homePhotoCta}</span>
             <span className="hero-action-hint">{copy.homePhotoHint}</span>
           </Link>
+          <Link className="hero-action" to="/fotos?modo=live">
+            <span className="btn btn-ghost">{copy.homeLivePhotoCta}</span>
+            <span className="hero-action-hint">{copy.homeLivePhotoHint}</span>
+          </Link>
           <Link className="hero-action" to="/musicas">
             <span className="btn btn-ghost">{copy.homeMusicCta}</span>
             <span className="hero-action-hint">{copy.homeMusicHint}</span>

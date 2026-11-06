@@ -1,11 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { HostGate } from '../components/HostGate'
 import { LivePhotoWall } from '../components/LivePhotoWall'
-import { ModerateQueue } from '../components/ModerateQueue'
 import { PartyChatWall } from '../components/PartyChatWall'
 import { PhotoModeration } from '../components/PhotoModeration'
 import { RsvpSummary } from '../components/RsvpSummary'
-import { SongVoteControls } from '../components/SongVoteControls'
 import { copy } from '../lib/copy'
 import {
   advancePlayQueue,
@@ -18,12 +16,10 @@ import {
 import { extractYouTubeId } from '../lib/mediaIds'
 import { resolvePlayableVideoId } from '../lib/resolvePlayable'
 import {
-  castSongVote,
   deleteSong,
   listSongs,
   moveSong,
   skipSong,
-  sortSongsForModeration,
   subscribeToPlaylist,
   unskipSong,
   type Song,
@@ -65,6 +61,7 @@ function AnfitriaoHost() {
   const [votingId, setVotingId] = useState<string | null>(null)
   const [moderationBusyId, setModerationBusyId] = useState<string | null>(null)
   const [opsOpen, setOpsOpen] = useState(false)
+  const [moreOpen, setMoreOpen] = useState(false)
 
   const playerRef = useRef<YouTubePlayer | null>(null)
   const songsRef = useRef<Song[]>([])
@@ -310,19 +307,6 @@ function AnfitriaoHost() {
     }
   }
 
-  async function handleVote(songId: string, vote: 1 | -1) {
-    setVotingId(songId)
-    setError(null)
-    try {
-      const data = await castSongVote(songId, vote)
-      applySongs(data)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Falha ao votar.')
-    } finally {
-      setVotingId(null)
-    }
-  }
-
   async function handleSkipToggle(song: Song) {
     setVotingId(song.id)
     setError(null)
@@ -450,8 +434,8 @@ function AnfitriaoHost() {
     window.open(`https://www.youtube.com/watch?v=${videoId}`, '_blank', 'noopener,noreferrer')
   }
 
-  const moderationList = sortSongsForModeration(songs)
   const wakeLockSupported = typeof navigator !== 'undefined' && 'wakeLock' in navigator
+  const upcoming = queueView.upcoming
 
   return (
     <section className="host-tv">
@@ -501,40 +485,12 @@ function AnfitriaoHost() {
                 {current.submitted_by ? (
                   <p className="song-by">sugerida por {current.submitted_by}</p>
                 ) : null}
-                <SongVoteControls
-                  song={current}
-                  showSkip
-                  disabled={votingId === current.id}
-                  onUpvote={(id) => {
-                    void handleVote(id, 1)
-                  }}
-                  onDownvote={(id) => {
-                    void handleVote(id, -1)
-                  }}
-                  onSkipToggle={(item) => {
-                    void handleSkipToggle(item)
-                  }}
-                />
               </div>
             ) : null}
 
             {started ? (
-              <>
-                <label className="keep-screen-toggle">
-                  <input
-                    type="checkbox"
-                    checked={keepScreenOn}
-                    onChange={(event) => setKeepScreenOn(event.target.checked)}
-                  />
-                  <span>
-                    Manter tela ligada
-                    {!wakeLockSupported ? (
-                      <span className="field-hint">Neste celular pode não funcionar.</span>
-                    ) : null}
-                  </span>
-                </label>
-
-                <div className="player-controls">
+              <div className="host-transport">
+                <div className="player-controls host-transport-main">
                   <button
                     className="btn btn-ghost"
                     type="button"
@@ -559,27 +515,52 @@ function AnfitriaoHost() {
                     Próxima
                   </button>
                   <button
-                    className="btn btn-ghost btn-danger-ghost"
-                    type="button"
-                    disabled={!current || votingId === current.id}
-                    onClick={() => {
-                      void skipCurrent()
-                    }}
-                  >
-                    Tirar da festa
-                  </button>
-                  <button
                     className="btn btn-ghost"
                     type="button"
-                    disabled={!current}
-                    onClick={() => {
-                      void openCurrentOnYouTube()
-                    }}
+                    aria-expanded={moreOpen}
+                    onClick={() => setMoreOpen((open) => !open)}
                   >
-                    Abrir no YouTube
+                    {moreOpen ? copy.hostMoreClose : copy.hostMore}
                   </button>
                 </div>
-              </>
+                {moreOpen ? (
+                  <div className="host-more-panel">
+                    <label className="keep-screen-toggle">
+                      <input
+                        type="checkbox"
+                        checked={keepScreenOn}
+                        onChange={(event) => setKeepScreenOn(event.target.checked)}
+                      />
+                      <span>
+                        Manter tela ligada
+                        {!wakeLockSupported ? (
+                          <span className="field-hint">Neste aparelho pode não funcionar.</span>
+                        ) : null}
+                      </span>
+                    </label>
+                    <button
+                      className="btn btn-ghost btn-danger-ghost"
+                      type="button"
+                      disabled={!current || votingId === current.id}
+                      onClick={() => {
+                        void skipCurrent()
+                      }}
+                    >
+                      Tirar da festa
+                    </button>
+                    <button
+                      className="btn btn-ghost"
+                      type="button"
+                      disabled={!current}
+                      onClick={() => {
+                        void openCurrentOnYouTube()
+                      }}
+                    >
+                      Abrir no YouTube
+                    </button>
+                  </div>
+                ) : null}
+              </div>
             ) : null}
 
             {started && status === 'loading' ? <p className="muted">Preparando a música…</p> : null}
@@ -587,34 +568,69 @@ function AnfitriaoHost() {
           </div>
 
           <div className="host-upcoming">
-            <h2>Em seguida</h2>
-            {started && queueView.upcoming.length > 0 ? (
-              <ol className="song-list play-queue">
-                {queueView.upcoming.map((song, index) => (
-                  <li key={song.id} className="song-item">
-                    <button
-                      type="button"
-                      className="queue-jump"
-                      onClick={() => jumpToSong(song.id)}
-                    >
-                      <span className="queue-index">{index + 1}</span>
-                      <span>
-                        <strong>{song.title}</strong>
-                        <span className="song-artist">{song.artist}</span>
-                      </span>
-                    </button>
-                  </li>
-                ))}
+            <h2>{copy.hostUpcomingTitle}</h2>
+            {started && upcoming.length > 0 ? (
+              <ol className="song-list play-queue host-upcoming-list">
+                {upcoming.map((song, index) => {
+                  const busy = moderationBusyId === song.id
+                  return (
+                    <li key={song.id} className="song-item host-upcoming-item">
+                      <button
+                        type="button"
+                        className="queue-jump"
+                        onClick={() => jumpToSong(song.id)}
+                      >
+                        <span className="queue-index">{index + 1}</span>
+                        <span>
+                          <strong>{song.title}</strong>
+                          <span className="song-artist">{song.artist}</span>
+                        </span>
+                      </button>
+                      <div className="host-upcoming-actions">
+                        <button
+                          type="button"
+                          className="vote-btn"
+                          disabled={busy || index === 0}
+                          onClick={() => {
+                            void handleMove(song.id, 'up')
+                          }}
+                        >
+                          {copy.hostUpcomingUp}
+                        </button>
+                        <button
+                          type="button"
+                          className="vote-btn"
+                          disabled={busy || index === upcoming.length - 1}
+                          onClick={() => {
+                            void handleMove(song.id, 'down')
+                          }}
+                        >
+                          {copy.hostUpcomingDown}
+                        </button>
+                        <button
+                          type="button"
+                          className="vote-btn vote-btn-active-down"
+                          disabled={busy}
+                          onClick={() => {
+                            void handleRemove(song)
+                          }}
+                        >
+                          {copy.hostUpcomingRemove}
+                        </button>
+                      </div>
+                    </li>
+                  )
+                })}
               </ol>
             ) : (
-              <p className="muted">Nada depois desta.</p>
+              <p className="muted">{copy.hostUpcomingEmpty}</p>
             )}
           </div>
         </div>
 
         <div className="host-tv-side">
-          <PartyChatWall canModerate />
-          <LivePhotoWall canModerate />
+          <PartyChatWall canModerate={opsOpen} />
+          <LivePhotoWall canModerate={opsOpen} />
         </div>
       </div>
 
@@ -622,23 +638,6 @@ function AnfitriaoHost() {
         <div className="host-tv-ops panel">
           <RsvpSummary />
           <PhotoModeration />
-          <div className="list-panel">
-            <h2>Ordem</h2>
-            <p className="muted moderate-help">Subir, descer ou remover.</p>
-            {loading ? <p className="muted">Carregando…</p> : null}
-            {!loading ? (
-              <ModerateQueue
-                songs={moderationList}
-                busyId={moderationBusyId}
-                onMove={(songId, direction) => {
-                  void handleMove(songId, direction)
-                }}
-                onRemove={(song) => {
-                  void handleRemove(song)
-                }}
-              />
-            ) : null}
-          </div>
         </div>
       ) : null}
     </section>

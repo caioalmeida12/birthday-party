@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useGuestNickname } from '../components/GuestSession'
 import { NicknameField } from '../components/NicknameField'
 import { MAX_PHOTO_BYTES } from '../lib/config'
@@ -8,13 +9,16 @@ import type { PhotoKind } from '../lib/photoKind'
 import { isSupabaseConfigured } from '../lib/supabase'
 
 export function Photos() {
+  const [searchParams] = useSearchParams()
   const [photos, setPhotos] = useState<Photo[]>([])
   const [loading, setLoading] = useState(isSupabaseConfigured)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [file, setFile] = useState<File | null>(null)
-  const [kind, setKind] = useState<PhotoKind>('decor')
+  const [kind, setKind] = useState<PhotoKind>(() =>
+    searchParams.get('modo') === 'live' ? 'live' : 'decor',
+  )
   const [submittedBy, setSubmittedBy, persistNickname] = useGuestNickname()
 
   useEffect(() => {

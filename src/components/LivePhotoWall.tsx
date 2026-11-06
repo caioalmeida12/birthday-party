@@ -64,36 +64,53 @@ export function LivePhotoWall({ canModerate = false }: Props) {
     }
   }
 
+  const empty = !loading && photos.length === 0
+
   return (
-    <div className="host-wall host-live-wall">
+    <div
+      className={
+        empty ? 'host-wall host-live-wall host-live-wall-empty' : 'host-wall host-live-wall'
+      }
+    >
       <header className="host-wall-header">
         <h2>{copy.hostLiveTitle}</h2>
       </header>
       {loading ? <p className="muted">Carregando…</p> : null}
-      {!loading && photos.length === 0 ? <p className="muted">{copy.hostLiveEmpty}</p> : null}
+      {empty ? (
+        <div className="host-live-empty">
+          <p>{copy.hostLiveEmpty}</p>
+          <p className="host-live-empty-hint">{copy.hostLiveEmptyHint}</p>
+        </div>
+      ) : null}
       {error ? <p className="form-msg form-msg-error">{error}</p> : null}
-      <div className="live-photo-grid">
-        {photos.map((photo) => (
-          <figure key={photo.id} className="live-photo-card">
-            <img src={photo.publicUrl} alt={photo.submitted_by || 'Foto ao vivo'} loading="lazy" />
-            <figcaption>
-              <span>{photo.submitted_by || copy.photoModAnonymous}</span>
-              {canModerate ? (
-                <button
-                  type="button"
-                  className="btn btn-ghost btn-tiny"
-                  disabled={busyId === photo.id}
-                  onClick={() => {
-                    void onRemove(photo)
-                  }}
-                >
-                  {copy.hostLiveRemove}
-                </button>
-              ) : null}
-            </figcaption>
-          </figure>
-        ))}
-      </div>
+      {!empty ? (
+        <div className="live-photo-grid">
+          {photos.map((photo) => (
+            <figure key={photo.id} className="live-photo-card">
+              <img
+                src={photo.publicUrl}
+                alt={photo.submitted_by || 'Foto ao vivo'}
+                loading="lazy"
+              />
+              <figcaption>
+                <span>{photo.submitted_by || copy.photoModAnonymous}</span>
+                {canModerate ? (
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-tiny"
+                    disabled={busyId === photo.id}
+                    onClick={() => {
+                      void onRemove(photo)
+                    }}
+                  >
+                    {copy.hostLiveRemove}
+                  </button>
+                ) : null}
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+      ) : null}
     </div>
   )
 }

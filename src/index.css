@@ -1417,7 +1417,7 @@ main {
 
 .host-tv-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(300px, 1fr);
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.95fr);
   gap: 0.75rem;
   flex: 1;
   min-height: 0;
@@ -1427,18 +1427,18 @@ main {
 .host-tv-player {
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
+  gap: 0.4rem;
   min-height: 0;
   overflow: hidden;
-  padding: 0.75rem;
+  padding: 0.65rem 0.75rem;
 }
 
-/* Vídeo limitado: não engole a fila nem a coluna da direita. */
+/* Player curto: a fila é o herói da coluna. */
 .host-tv .player-frame {
   flex: 0 0 auto;
   width: 100%;
-  max-width: min(100%, 720px);
-  max-height: 34vh;
+  max-width: min(100%, 560px);
+  max-height: 22vh;
   aspect-ratio: 16 / 9;
   height: auto;
   margin: 0 auto;
@@ -1447,7 +1447,7 @@ main {
 .host-tv .player-stage {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.3rem;
   flex: 0 0 auto;
   min-height: 0;
 }
@@ -1457,24 +1457,72 @@ main {
 }
 
 .host-tv .now-playing h2 {
-  font-size: clamp(1.05rem, 2vw, 1.35rem);
+  font-size: clamp(1.1rem, 2.2vw, 1.45rem);
+  line-height: 1.15;
 }
 
-.host-tv .player-controls {
+.host-tv .now-playing .song-artist,
+.host-tv .now-playing .song-by {
+  font-size: 0.95rem;
+}
+
+.host-transport-main {
+  display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.host-more-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.35rem;
+  padding: 0.45rem 0.55rem;
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, #0a100d 70%, transparent);
 }
 
 .host-tv .keep-screen-toggle {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
+  margin: 0;
 }
 
 .host-tv-side {
   display: grid;
-  grid-template-rows: minmax(0, 1fr) minmax(0, 1.15fr);
+  grid-template-rows: minmax(0, 1.35fr) minmax(0, 1fr);
   gap: 0.75rem;
   min-height: 0;
   overflow: hidden;
+}
+
+.host-tv-side:has(.host-live-wall-empty) {
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+
+/* Tipografia de conversa legível a distância (TV). */
+.host-tv .host-chat-wall .chat-who {
+  font-size: 1.15rem;
+}
+
+.host-tv .host-chat-wall .chat-body {
+  font-size: 1.45rem;
+  line-height: 1.35;
+}
+
+.host-tv .host-chat-wall .chat-time {
+  font-size: 0.95rem;
+}
+
+.host-tv .host-chat-wall .host-wall-header h2,
+.host-tv .host-live-wall .host-wall-header h2 {
+  font-size: 1.2rem;
+}
+
+.host-tv .host-chat-wall .muted,
+.host-tv .host-live-wall .muted {
+  font-size: 1.15rem;
 }
 
 .host-wall {
@@ -1592,29 +1640,69 @@ main {
 
 .host-upcoming {
   flex: 1 1 auto;
-  min-height: 7rem;
+  min-height: 10rem;
   margin-top: 0;
-  padding-top: 0.35rem;
+  padding-top: 0.4rem;
   border-top: 1px solid color-mix(in srgb, #f7e7c2 14%, transparent);
   overflow: auto;
 }
 
 .host-upcoming h2 {
-  margin: 0 0 0.4rem;
-  font-size: 0.95rem;
+  margin: 0 0 0.45rem;
+  font-size: 1.15rem;
   position: sticky;
   top: 0;
-  background: color-mix(in srgb, #14241c 92%, black);
+  background: color-mix(in srgb, #14241c 94%, black);
   z-index: 1;
-  padding-bottom: 0.2rem;
+  padding-bottom: 0.25rem;
 }
 
-.host-upcoming .song-item {
-  padding: 0.35rem 0;
+.host-upcoming-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid color-mix(in srgb, #f7e7c2 10%, transparent);
 }
 
 .host-upcoming .queue-jump {
+  flex: 1;
   gap: 0.5rem;
+  text-align: left;
+  min-width: 0;
+}
+
+.host-upcoming .queue-jump strong {
+  font-size: 1.05rem;
+}
+
+.host-upcoming-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  flex: 0 0 auto;
+}
+
+.host-live-empty {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.25rem 0 0.5rem;
+}
+
+.host-live-empty p {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.host-live-empty-hint {
+  font-size: 1.25rem !important;
+  color: #f0b429;
+  font-weight: 600;
+}
+
+.host-live-wall-empty {
+  min-height: 0;
 }
 
 .photo-kind-fieldset {
