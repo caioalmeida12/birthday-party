@@ -501,9 +501,6 @@ function AnfitriaoHost() {
                 {current.submitted_by ? (
                   <p className="song-by">sugerida por {current.submitted_by}</p>
                 ) : null}
-                {queueView.upcoming[0] ? (
-                  <p className="muted">Em seguida: {queueView.upcoming[0].title}</p>
-                ) : null}
                 <SongVoteControls
                   song={current}
                   showSkip
@@ -589,11 +586,11 @@ function AnfitriaoHost() {
             {error ? <p className="form-msg form-msg-error">{error}</p> : null}
           </div>
 
-          {started && queueView.upcoming.length > 0 ? (
-            <div className="host-upcoming">
-              <h2>Em seguida</h2>
+          <div className="host-upcoming">
+            <h2>Em seguida</h2>
+            {started && queueView.upcoming.length > 0 ? (
               <ol className="song-list play-queue">
-                {queueView.upcoming.slice(0, 5).map((song, index) => (
+                {queueView.upcoming.map((song, index) => (
                   <li key={song.id} className="song-item">
                     <button
                       type="button"
@@ -609,8 +606,10 @@ function AnfitriaoHost() {
                   </li>
                 ))}
               </ol>
-            </div>
-          ) : null}
+            ) : (
+              <p className="muted">Nada depois desta.</p>
+            )}
+          </div>
         </div>
 
         <div className="host-tv-side">

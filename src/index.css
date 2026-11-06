@@ -1394,9 +1394,12 @@ main {
 .host-tv {
   display: flex;
   flex-direction: column;
-  min-height: 100dvh;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem 1rem;
+  height: 100dvh;
+  max-height: 100dvh;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem 0.75rem;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .host-tv-bar {
@@ -1404,33 +1407,74 @@ main {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+  flex: 0 0 auto;
 }
 
 .host-tv-bar h1 {
   margin: 0;
-  font-size: 1.25rem;
+  font-size: 1.1rem;
 }
 
 .host-tv-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.9fr);
+  grid-template-columns: minmax(0, 1.15fr) minmax(300px, 1fr);
   gap: 0.75rem;
   flex: 1;
   min-height: 0;
+  overflow: hidden;
 }
 
 .host-tv-player {
   display: flex;
   flex-direction: column;
+  gap: 0.45rem;
   min-height: 0;
-  overflow: auto;
+  overflow: hidden;
+  padding: 0.75rem;
+}
+
+/* Vídeo limitado: não engole a fila nem a coluna da direita. */
+.host-tv .player-frame {
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: min(100%, 720px);
+  max-height: 34vh;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  margin: 0 auto;
+}
+
+.host-tv .player-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex: 0 0 auto;
+  min-height: 0;
+}
+
+.host-tv .now-playing {
+  margin-top: 0;
+}
+
+.host-tv .now-playing h2 {
+  font-size: clamp(1.05rem, 2vw, 1.35rem);
+}
+
+.host-tv .player-controls {
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.host-tv .keep-screen-toggle {
+  font-size: 0.8rem;
 }
 
 .host-tv-side {
   display: grid;
-  grid-template-rows: 1fr 1fr;
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1.15fr);
   gap: 0.75rem;
   min-height: 0;
+  overflow: hidden;
 }
 
 .host-wall {
@@ -1547,12 +1591,30 @@ main {
 }
 
 .host-upcoming {
-  margin-top: 0.75rem;
+  flex: 1 1 auto;
+  min-height: 7rem;
+  margin-top: 0;
+  padding-top: 0.35rem;
+  border-top: 1px solid color-mix(in srgb, #f7e7c2 14%, transparent);
+  overflow: auto;
 }
 
 .host-upcoming h2 {
   margin: 0 0 0.4rem;
   font-size: 0.95rem;
+  position: sticky;
+  top: 0;
+  background: color-mix(in srgb, #14241c 92%, black);
+  z-index: 1;
+  padding-bottom: 0.2rem;
+}
+
+.host-upcoming .song-item {
+  padding: 0.35rem 0;
+}
+
+.host-upcoming .queue-jump {
+  gap: 0.5rem;
 }
 
 .photo-kind-fieldset {
