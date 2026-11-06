@@ -1,4 +1,4 @@
-import { type Rsvp } from './rsvpMath'
+import { clampPlusOnes, headsForAttending, type Rsvp } from './rsvpMath'
 import { requireSupabase } from './supabase'
 import { getVoterKey } from './voter'
 
@@ -19,20 +19,32 @@ type RsvpRow = {
 }
 
 function mapRsvp(row: RsvpRow): Rsvp {
-  const plusOnes = row.plus_ones
+  const plusOnes = clampPlusOnes(row.plus_ones)
   return {
     id: row.id,
     name: row.name,
     attending: row.attending,
     plusOnes,
-    heads: row.attending ? 1 + plusOnes : 0,
+    heads: row.attending ? headsForAttending(plusOnes) : 0,
   }
+}
+
+function migrationHint(error: { code?: string; message: string }): Error | null {
+  if (error.code === 'PGRST205' || /rsvps/.test(error.message)) {
+    return new Error('Falta rodar a migration no Supabase (supabase/migration-rsvps.sql).')
+  }
+  if (error.code === '42501' || /permission|policy|RLS/i.test(error.message)) {
+    return new Error(
+      'Falta rodar a migration no Supabase (supabase/migration-rsvp-host-edit.sql).',
+    )
+  }
+  return null
 }
 
 export async function upsertRsvp(input: RsvpInput): Promise<Rsvp> {
   const client = requireSupabase()
   const voterKey = getVoterKey()
-  const plusOnes = input.attending ? Math.max(0, Math.floor(input.plusOnes)) : 0
+  const plusOnes = input.attending ? clampPlusOnes(input.plusOnes) : 0
 
   const { data, error } = await client
     .from('rsvps')
@@ -50,9 +62,8 @@ export async function upsertRsvp(input: RsvpInput): Promise<Rsvp> {
     .single()
 
   if (error) {
-    if (error.code === 'PGRST205' || /rsvps/.test(error.message)) {
-      throw new Error('Falta rodar a migration no Supabase (supabase/migration-rsvps.sql).')
-    }
+    const hinted = migrationHint(error)
+    if (hinted) throw hinted
     throw error
   }
 
@@ -67,11 +78,43 @@ export async function listRsvps(): Promise<Rsvp[]> {
     .order('created_at', { ascending: true })
 
   if (error) {
-    if (error.code === 'PGRST205' || /rsvps/.test(error.message)) {
-      throw new Error('Falta rodar a migration no Supabase (supabase/migration-rsvps.sql).')
-    }
+    const hinted = migrationHint(error)
+    if (hinted) throw hinted
     throw error
   }
 
   return ((data as RsvpRow[] | null) ?? []).map(mapRsvp)
+}
+
+export async function updateRsvpPlusOnes(rsvpId: string, plusOnes: number): Promise<Rsvp> {
+  const client = requireSupabase()
+  const next = clampPlusOnes(plusOnes)
+  const { data, error } = await client
+    .from('rsvps')
+    .update({
+      plus_ones: next,
+      attending: true,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', rsvpId)
+    .select('id, name, attending, plus_ones')
+    .single()
+
+  if (error) {
+    const hinted = migrationHint(error)
+    if (hinted) throw hinted
+    throw error
+  }
+
+  return mapRsvp(data as RsvpRow)
+}
+
+export async function deleteRsvp(rsvpId: string): Promise<void> {
+  const client = requireSupabase()
+  const { error } = await client.from('rsvps').delete().eq('id', rsvpId)
+  if (error) {
+    const hinted = migrationHint(error)
+    if (hinted) throw hinted
+    throw error
+  }
 }

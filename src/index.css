@@ -413,11 +413,13 @@ a:hover {
   gap: 0.45rem;
 }
 
-.rsvp-host-list li {
+.rsvp-host-row {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  padding: 0.45rem 0;
+  gap: 0.65rem 1rem;
+  padding: 0.55rem 0;
   border-bottom: 1px solid rgba(247, 231, 194, 0.08);
   color: rgba(247, 231, 194, 0.85);
 }
@@ -426,8 +428,36 @@ a:hover {
   border-bottom: none;
 }
 
-.rsvp-host-no {
+.rsvp-host-main {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.rsvp-host-plus-label {
+  font-size: 0.78rem;
+  opacity: 0.65;
+}
+
+.rsvp-host-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.rsvp-host-plus-value {
+  min-width: 2.5rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.rsvp-host-skip {
   margin-top: 0.85rem;
+}
+
+.rsvp-host-skip > .muted {
+  margin: 0 0 0.35rem;
   font-size: 0.9rem;
 }
 

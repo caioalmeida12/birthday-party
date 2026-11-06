@@ -192,6 +192,12 @@ create policy "rsvps_update_public"
   using (true)
   with check (true);
 
+drop policy if exists "rsvps_delete_public" on public.rsvps;
+create policy "rsvps_delete_public"
+  on public.rsvps for delete
+  to anon, authenticated
+  using (true);
+
 insert into storage.buckets (id, name, public)
 values ('party-photos', 'party-photos', true)
 on conflict (id) do update set public = excluded.public;

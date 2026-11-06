@@ -7,6 +7,18 @@ export type Rsvp = {
   heads: number
 }
 
+export const MAX_RSVP_PLUS_ONES = 30
+
+/** Acompanhantes válidos pro RSVP (0–30). */
+export function clampPlusOnes(value: number): number {
+  if (!Number.isFinite(value)) return 0
+  return Math.min(MAX_RSVP_PLUS_ONES, Math.max(0, Math.floor(value)))
+}
+
+export function headsForAttending(plusOnes: number): number {
+  return 1 + clampPlusOnes(plusOnes)
+}
+
 export function summarizeRsvps(rsvps: Rsvp[]): {
   yes: number
   no: number

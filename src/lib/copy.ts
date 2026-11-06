@@ -130,6 +130,12 @@ export const copy = {
   rsvpHostYes: (n: number) => `${n} sim`,
   rsvpHostNo: (n: number) => `${n} não`,
   rsvpHostWith: (n: number) => (n === 0 ? 'só' : `+${n}`),
+  rsvpHostPlusLabel: 'Com ele/ela',
+  rsvpHostMinus: '−',
+  rsvpHostPlus: '+',
+  rsvpHostRemove: 'Remover',
+  rsvpHostRemoveConfirm: (name: string) => `Remover ${name} da lista?`,
+  rsvpHostNoTitle: 'Não vêm',
 
   songsTitle: 'Música',
   songsLead: 'Nome ou link do Spotify/YouTube. Entra na fila da festa.',
