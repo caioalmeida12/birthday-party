@@ -12,8 +12,11 @@ export function partyInviteLine(): string {
   return `${PARTY_WHEN_SHORT} · ${PARTY_PLACE_FULL}`
 }
 
+/** Pin correto no Maps (Andréa Artes / Sítio Jatobá). */
+export const PARTY_MAPS_URL =
+  'https://www.google.com/maps/place/Andr%C3%A9a+Artes/@-6.7406972,-39.19028,17z/data=!3m1!4b1!4m6!3m5!1s0x7a3b1b1458539a5:0x57753f8ded422d9e!8m2!3d-6.7406972!4d-39.19028!16s%2Fg%2F11fr77j1gp'
+
 /** Abre o lugar no Google Maps. */
 export function partyMapsUrl(): string {
-  const query = `${PARTY_PLACE_NAME}, ${PARTY_PLACE_REGION}`
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`
+  return PARTY_MAPS_URL
 }
