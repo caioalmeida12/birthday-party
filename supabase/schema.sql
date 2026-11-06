@@ -8,6 +8,7 @@ create table if not exists public.songs (
   artist text not null,
   url text not null,
   submitted_by text,
+  position integer not null default 0,
   created_at timestamptz not null default now()
 );
 
@@ -48,6 +49,19 @@ create policy "songs_insert_public"
   on public.songs for insert
   to anon, authenticated
   with check (true);
+
+drop policy if exists "songs_update_public" on public.songs;
+create policy "songs_update_public"
+  on public.songs for update
+  to anon, authenticated
+  using (true)
+  with check (true);
+
+drop policy if exists "songs_delete_public" on public.songs;
+create policy "songs_delete_public"
+  on public.songs for delete
+  to anon, authenticated
+  using (true);
 
 drop policy if exists "photos_select_public" on public.photos;
 create policy "photos_select_public"

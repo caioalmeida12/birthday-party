@@ -10,6 +10,7 @@ export type Song = {
   url: string
   submitted_by: string | null
   created_at: string
+  position: number
   upvotes: number
   downvotes: number
   score: number
@@ -29,9 +30,13 @@ type SongRow = {
   url: string
   submitted_by: string | null
   created_at: string
+  position?: number | null
   song_votes?: Array<{ vote: number; voter_key: string }> | null
   song_skips?: Array<{ song_id: string }> | null
 }
+
+const SONG_SELECT =
+  'id, title, artist, url, submitted_by, created_at, position, song_votes(vote, voter_key), song_skips(song_id)'
 
 function mapSong(row: SongRow, voterKey: string): Song {
   const votes = row.song_votes ?? []
@@ -54,6 +59,7 @@ function mapSong(row: SongRow, voterKey: string): Song {
     url: row.url,
     submitted_by: row.submitted_by,
     created_at: row.created_at,
+    position: row.position ?? 0,
     upvotes,
     downvotes,
     score: upvotes - downvotes,
@@ -62,10 +68,24 @@ function mapSong(row: SongRow, voterKey: string): Song {
   }
 }
 
+function migrationHint(error: { code?: string; message: string }): Error | null {
+  if (
+    error.code === 'PGRST204' ||
+    error.code === 'PGRST205' ||
+    /position|song_votes|song_skips/.test(error.message)
+  ) {
+    return new Error(
+      'Falta rodar a migration no Supabase (supabase/migration-votes-skip.sql e migration-moderation.sql).',
+    )
+  }
+  return null
+}
+
 export function sortSongsForQueue(songs: Song[]): Song[] {
   return [...songs]
     .filter((song) => !song.skipped)
     .sort((a, b) => {
+      if (a.position !== b.position) return a.position - b.position
       if (b.score !== a.score) return b.score - a.score
       return a.created_at.localeCompare(b.created_at)
     })
@@ -74,9 +94,34 @@ export function sortSongsForQueue(songs: Song[]): Song[] {
 export function sortSongsForBoard(songs: Song[]): Song[] {
   return [...songs].sort((a, b) => {
     if (a.skipped !== b.skipped) return a.skipped ? 1 : -1
+    if (a.position !== b.position) return a.position - b.position
     if (b.score !== a.score) return b.score - a.score
-    return b.created_at.localeCompare(a.created_at)
+    return a.created_at.localeCompare(b.created_at)
   })
+}
+
+export function sortSongsForModeration(songs: Song[]): Song[] {
+  return [...songs].sort((a, b) => {
+    if (a.position !== b.position) return a.position - b.position
+    return a.created_at.localeCompare(b.created_at)
+  })
+}
+
+async function nextPosition(): Promise<number> {
+  const client = requireSupabase()
+  const { data, error } = await client
+    .from('songs')
+    .select('position')
+    .order('position', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (error) {
+    const hinted = migrationHint(error)
+    if (hinted) throw hinted
+    throw error
+  }
+  return (data?.position ?? 0) + 1
 }
 
 export async function listSongs(): Promise<Song[]> {
@@ -84,17 +129,13 @@ export async function listSongs(): Promise<Song[]> {
   const voterKey = getVoterKey()
   const { data, error } = await client
     .from('songs')
-    .select(
-      'id, title, artist, url, submitted_by, created_at, song_votes(vote, voter_key), song_skips(song_id)',
-    )
-    .order('created_at', { ascending: false })
+    .select(SONG_SELECT)
+    .order('position', { ascending: true })
+    .order('created_at', { ascending: true })
 
   if (error) {
-    if (error.code === 'PGRST205' || /song_votes|song_skips/.test(error.message)) {
-      throw new Error(
-        'Falta rodar a migration de votos no Supabase (supabase/migration-votes-skip.sql).',
-      )
-    }
+    const hinted = migrationHint(error)
+    if (hinted) throw hinted
     throw error
   }
   return ((data as SongRow[] | null) ?? []).map((row) => mapSong(row, voterKey))
@@ -111,6 +152,7 @@ export async function createSong(input: SongInput): Promise<Song> {
   }
 
   const metadata = await resolveMusicMetadata(url)
+  const position = await nextPosition()
   const client = requireSupabase()
   const { data, error } = await client
     .from('songs')
@@ -119,13 +161,16 @@ export async function createSong(input: SongInput): Promise<Song> {
       artist: metadata.artist,
       url: metadata.url,
       submitted_by: submittedBy,
+      position,
     })
-    .select(
-      'id, title, artist, url, submitted_by, created_at, song_votes(vote, voter_key), song_skips(song_id)',
-    )
+    .select(SONG_SELECT)
     .single()
 
-  if (error) throw error
+  if (error) {
+    const hinted = migrationHint(error)
+    if (hinted) throw hinted
+    throw error
+  }
   return mapSong(data as SongRow, getVoterKey())
 }
 
@@ -183,6 +228,53 @@ export async function unskipSong(songId: string): Promise<Song[]> {
   const { error } = await client.from('song_skips').delete().eq('song_id', songId)
   if (error) throw error
   return listSongs()
+}
+
+export async function moveSong(songId: string, direction: 'up' | 'down'): Promise<Song[]> {
+  const songs = sortSongsForModeration(await listSongs())
+  const index = songs.findIndex((song) => song.id === songId)
+  if (index < 0) return songs
+
+  const swapWith = direction === 'up' ? index - 1 : index + 1
+  if (swapWith < 0 || swapWith >= songs.length) return songs
+
+  const reordered = [...songs]
+  const current = reordered[index]
+  reordered[index] = reordered[swapWith]
+  reordered[swapWith] = current
+
+  return saveSongOrder(reordered.map((song) => song.id))
+}
+
+export async function saveSongOrder(orderedIds: string[]): Promise<Song[]> {
+  const client = requireSupabase()
+
+  for (let index = 0; index < orderedIds.length; index += 1) {
+    const { error } = await client
+      .from('songs')
+      .update({ position: index + 1 })
+      .eq('id', orderedIds[index])
+    if (error) {
+      const hinted = migrationHint(error)
+      if (hinted) throw hinted
+      throw error
+    }
+  }
+
+  return listSongs()
+}
+
+export async function deleteSong(songId: string): Promise<Song[]> {
+  const client = requireSupabase()
+  const { error } = await client.from('songs').delete().eq('id', songId)
+  if (error) {
+    const hinted = migrationHint(error)
+    if (hinted) throw hinted
+    throw error
+  }
+  const remaining = sortSongsForModeration(await listSongs())
+  if (remaining.length === 0) return remaining
+  return saveSongOrder(remaining.map((song) => song.id))
 }
 
 export function subscribeToPlaylist(onChange: () => void): () => void {

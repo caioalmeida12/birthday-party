@@ -10,7 +10,7 @@ Site do aniversário para a galera participar pelo celular.
 ## Quem faz o quê
 
 - **Convidado:** manda música, vota (gostei / não rolou), manda foto.
-- **Anfitrião:** toca a fila na caixa (Bluetooth), pula faixa, tira música da festa.
+- **Anfitrião:** toca a fila na caixa (Bluetooth), reordena a fila ao vivo, remove música de vez, pula faixa. Votos mostram o gosto da galera; a ordem que toca é a que o anfitrião definir em `/tocar`.
 
 ## Tom
 

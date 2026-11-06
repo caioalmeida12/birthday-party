@@ -1,10 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
+import { ModerateQueue } from '../components/ModerateQueue'
 import { SongVoteControls } from '../components/SongVoteControls'
 import { resolvePlayableVideoId } from '../lib/resolvePlayable'
 import {
   castSongVote,
+  deleteSong,
   listSongs,
+  moveSong,
   skipSong,
+  sortSongsForModeration,
   sortSongsForQueue,
   subscribeToPlaylist,
   unskipSong,
@@ -30,6 +34,7 @@ export function Play() {
   const [error, setError] = useState<string | null>(null)
   const [started, setStarted] = useState(false)
   const [votingId, setVotingId] = useState<string | null>(null)
+  const [moderationBusyId, setModerationBusyId] = useState<string | null>(null)
 
   const playerRef = useRef<YouTubePlayer | null>(null)
   const indexRef = useRef(0)
@@ -295,6 +300,50 @@ export function Play() {
     await handleSkipToggle(current)
   }
 
+  async function handleMove(songId: string, direction: 'up' | 'down') {
+    setModerationBusyId(songId)
+    setError(null)
+    try {
+      const data = await moveSong(songId, direction)
+      applySongs(data, { preferSongId: currentIdRef.current })
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Não deu pra mudar a ordem.')
+    } finally {
+      setModerationBusyId(null)
+    }
+  }
+
+  async function handleRemove(song: Song) {
+    const confirmed = window.confirm(
+      `Remover de vez “${song.title}”? Ela some da festa e não volta.`,
+    )
+    if (!confirmed) return
+
+    setModerationBusyId(song.id)
+    setError(null)
+    try {
+      const wasCurrent = song.id === currentIdRef.current
+      const data = await deleteSong(song.id)
+      const nextQueue = applySongs(data, {
+        preferSongId: wasCurrent ? null : currentIdRef.current,
+      })
+
+      if (started && wasCurrent) {
+        if (nextQueue.length === 0) {
+          setStatus('idle')
+          setError('Fila vazia — não sobrou música.')
+          playerRef.current?.stopVideo()
+        } else {
+          await playSongAt(0, { autoplay: true })
+        }
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Não deu pra remover a música.')
+    } finally {
+      setModerationBusyId(null)
+    }
+  }
+
   useEffect(() => {
     if (!('mediaSession' in navigator)) return
 
@@ -320,19 +369,15 @@ export function Play() {
   }, [])
 
   const current = queue[index]
-  const board = [...songs].sort((a, b) => {
-    if (a.skipped !== b.skipped) return a.skipped ? 1 : -1
-    if (b.score !== a.score) return b.score - a.score
-    return a.created_at.localeCompare(b.created_at)
-  })
+  const moderationList = sortSongsForModeration(songs)
 
   return (
     <section className="page play-page">
       <header className="page-header">
         <h1>Tocar na festa</h1>
         <p>
-          Liga o celular na caixa. A fila sobe com os “Gostei”. “Tirar da festa” remove a música da
-          rotação.
+          Liga o celular na caixa. Aqui você sobe, desce ou remove músicas ao vivo. “Tirar da festa”
+          só tira da rotação; “Remover” apaga de vez.
         </p>
       </header>
 
@@ -431,63 +476,23 @@ export function Play() {
       </div>
 
       <div className="panel list-panel">
-        <h2>Fila da festa</h2>
+        <h2>Moderar fila</h2>
+        <p className="muted moderate-help">
+          Subir / Descer muda a ordem na hora. Remover apaga a música pra sempre.
+        </p>
         {loading ? <p className="muted">Carregando…</p> : null}
-        {!loading && board.length === 0 ? (
-          <p className="muted">Nenhuma música ainda — peça pra galera mandar.</p>
+        {!loading ? (
+          <ModerateQueue
+            songs={moderationList}
+            busyId={moderationBusyId}
+            onMove={(songId, direction) => {
+              void handleMove(songId, direction)
+            }}
+            onRemove={(song) => {
+              void handleRemove(song)
+            }}
+          />
         ) : null}
-        <ol className="song-list play-queue">
-          {board.map((song) => {
-            const queueIndex = queue.findIndex((item) => item.id === song.id)
-            const isCurrent = started && song.id === current?.id
-            return (
-              <li
-                key={song.id}
-                className={[
-                  'song-item',
-                  isCurrent ? 'song-item-active' : '',
-                  song.skipped ? 'song-item-skipped' : '',
-                ]
-                  .filter(Boolean)
-                  .join(' ')}
-              >
-                <div className="song-queue-row">
-                  <button
-                    type="button"
-                    className="queue-jump"
-                    disabled={!started || song.skipped}
-                    onClick={() => {
-                      if (queueIndex < 0) return
-                      void playSongAt(queueIndex, { autoplay: true })
-                    }}
-                  >
-                    <span className="queue-index">
-                      {song.skipped ? '—' : queueIndex >= 0 ? queueIndex + 1 : '—'}
-                    </span>
-                    <span>
-                      <strong>{song.title}</strong>
-                      <span className="song-artist">{song.artist}</span>
-                    </span>
-                  </button>
-                  <SongVoteControls
-                    song={song}
-                    showSkip
-                    disabled={votingId === song.id}
-                    onUpvote={(id) => {
-                      void handleVote(id, 1)
-                    }}
-                    onDownvote={(id) => {
-                      void handleVote(id, -1)
-                    }}
-                    onSkipToggle={(item) => {
-                      void handleSkipToggle(item)
-                    }}
-                  />
-                </div>
-              </li>
-            )
-          })}
-        </ol>
       </div>
     </section>
   )

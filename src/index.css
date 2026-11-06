@@ -593,6 +593,45 @@ main {
   margin-top: 0.85rem;
 }
 
+.moderate-help {
+  margin: -0.35rem 0 1rem;
+}
+
+.moderate-list .song-item {
+  align-items: stretch;
+}
+
+.moderate-row {
+  display: grid;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.moderate-main {
+  display: flex;
+  gap: 0.85rem;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.moderate-main strong {
+  display: block;
+  color: var(--cream);
+}
+
+.moderate-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+@media (min-width: 640px) {
+  .moderate-row {
+    grid-template-columns: 1fr auto;
+    align-items: center;
+  }
+}
+
 .song-item a {
   font-weight: 600;
   color: var(--cream);

@@ -10,4 +10,4 @@ Palavras que entende: música, foto, gostei, não rolou, enviar, cola aqui, sua 
 
 ## Anfitrião
 
-Quem organiza a festa (Caio). Liga o celular na caixa de som e controla o que toca. Precisa de **começar a tocar**, **próxima**, **tirar da festa**. Consegue achar um atalho escondido; o convidado não deve cair nessa tela por acidente.
+Quem organiza a festa (Caio). Liga o celular na caixa de som e controla o que toca. Precisa de **começar a tocar**, **próxima**, **subir/descer** na fila, **remover de vez**. Entra por `/tocar`; o convidado não vê esse atalho no menu.
