@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-label="Convite">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-label="">
   <defs>
     <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#1a3328"/>
@@ -6,9 +6,7 @@
     </linearGradient>
   </defs>
   <rect width="800" height="500" fill="url(#g)"/>
-  <circle cx="120" cy="90" r="70" fill="#f0b429" opacity="0.18"/>
-  <circle cx="700" cy="420" r="110" fill="#3f8f68" opacity="0.28"/>
-  <rect x="90" y="70" width="620" height="360" rx="28" fill="none" stroke="#f7e7c2" stroke-opacity="0.28" stroke-width="2"/>
-  <text x="400" y="230" text-anchor="middle" fill="#f7e7c2" font-family="Georgia, serif" font-size="42" font-weight="700">Convite</text>
-  <text x="400" y="290" text-anchor="middle" fill="#f0b429" font-family="Georgia, serif" font-size="22">Troque por invite.jpg</text>
+  <circle cx="140" cy="110" r="90" fill="#f0b429" opacity="0.16"/>
+  <circle cx="680" cy="400" r="120" fill="#3f8f68" opacity="0.3"/>
+  <rect x="100" y="80" width="600" height="340" rx="28" fill="none" stroke="#f7e7c2" stroke-opacity="0.22" stroke-width="2"/>
 </svg>
