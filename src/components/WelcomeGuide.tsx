@@ -11,7 +11,7 @@ type Props = {
   onFinish: (result: WelcomeGuideFinish) => void
 }
 
-const STEPS = 3
+const STEPS = 4
 
 export function WelcomeGuide({ initialName = '', onFinish }: Props) {
   const [step, setStep] = useState(0)
@@ -28,18 +28,29 @@ export function WelcomeGuide({ initialName = '', onFinish }: Props) {
     setStep((current) => Math.max(current - 1, 0))
   }
 
-  function finish(goToPhotos: boolean) {
+  function requireName(): string | null {
     const trimmed = draft.trim()
     if (!trimmed) {
       setError(copy.nameError)
-      return
+      return null
     }
-    onFinish({ name: trimmed, goToPhotos })
+    setError(null)
+    return trimmed
   }
 
   function onSubmitName(event: FormEvent) {
     event.preventDefault()
-    finish(true)
+    if (!requireName()) return
+    goNext()
+  }
+
+  function finish(goToPhotos: boolean) {
+    const name = requireName()
+    if (!name) {
+      setStep(2)
+      return
+    }
+    onFinish({ name, goToPhotos })
   }
 
   return (
@@ -107,7 +118,7 @@ export function WelcomeGuide({ initialName = '', onFinish }: Props) {
         ) : null}
 
         {step === 2 ? (
-          <div className="welcome-pane" key="photo">
+          <div className="welcome-pane" key="name">
             <h1 id="welcome-guide-title" className="welcome-guide-title">
               {copy.nameTitle}
             </h1>
@@ -129,19 +140,40 @@ export function WelcomeGuide({ initialName = '', onFinish }: Props) {
                 />
               </label>
               {error ? <p className="form-msg form-msg-error">{error}</p> : null}
-              <button className="btn btn-primary btn-lg welcome-full" type="submit">
-                {copy.namePhotoCta}
-              </button>
-              <button
-                className="btn btn-ghost welcome-full"
-                type="button"
-                onClick={() => finish(false)}
-              >
-                {copy.nameLaterCta}
-              </button>
+              <div className="welcome-nav">
+                <button className="btn btn-ghost" type="button" onClick={goBack}>
+                  {copy.nameBack}
+                </button>
+                <button className="btn btn-primary" type="submit">
+                  {copy.nameNext}
+                </button>
+              </div>
             </form>
+          </div>
+        ) : null}
+
+        {step === 3 ? (
+          <div className="welcome-pane" key="photo">
+            <h1 id="welcome-guide-title" className="welcome-guide-title">
+              {copy.photoAskTitle}
+            </h1>
+            <p className="welcome-guide-lead">{copy.photoAskBody}</p>
+            <button
+              className="btn btn-primary btn-lg welcome-full"
+              type="button"
+              onClick={() => finish(true)}
+            >
+              {copy.photoAskCta}
+            </button>
+            <button
+              className="btn btn-ghost welcome-full"
+              type="button"
+              onClick={() => finish(false)}
+            >
+              {copy.photoAskLater}
+            </button>
             <button className="welcome-back-link" type="button" onClick={goBack}>
-              {copy.nameBack}
+              {copy.photoAskBack}
             </button>
           </div>
         ) : null}

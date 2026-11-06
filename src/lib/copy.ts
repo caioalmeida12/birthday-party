@@ -26,16 +26,21 @@ export const copy = {
   purposeBack: 'Voltar',
 
   nameTitle: 'Como te chamam?',
-  nameHint: 'Só pra aparecer junto da foto ou da música.',
-  namePlaceholder: 'Seu nome ou apelido',
+  nameHint: 'Aparece do lado do que você enviar.',
+  namePlaceholder: 'Nome ou apelido',
   nameError: 'Escreve seu nome ou apelido.',
-  namePhotoCta: 'Enviar foto',
-  nameLaterCta: 'Entrar sem foto',
+  nameNext: 'Continuar',
   nameBack: 'Voltar',
+
+  photoAskTitle: 'Foto pra decoração',
+  photoAskBody: `Manda uma imagem pra eu imprimir e colocar na parede do ${PARTY_PLACE_NAME}. Não é foto de perfil — é decoração da festa.`,
+  photoAskCta: 'Escolher foto',
+  photoAskLater: 'Depois',
+  photoAskBack: 'Voltar',
 
   gateKicker: 'Oi',
   gateTitle: PARTY_NAME,
-  gateBody: 'Escreve como te chamam — aparece na foto e na música que você mandar.',
+  gateBody: 'Escreve como te chamam — aparece no que você enviar.',
   gateCta: 'Entrar',
 
   homeKicker: 'Convite',
