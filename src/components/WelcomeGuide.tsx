@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { downloadIcs, googleCalendarUrl } from '../lib/calendarLink'
 import { copy } from '../lib/copy'
+import { partyMapsUrl } from '../lib/partyDetails'
 import { InviteArt } from './InviteArt'
 import { PhotoMosaic } from './PhotoMosaic'
 
@@ -132,6 +133,14 @@ export function WelcomeGuide({ initialName = '', onFinish }: Props) {
               rel="noreferrer"
             >
               {copy.inviteCalendar}
+            </a>
+            <a
+              className="btn btn-ghost welcome-full"
+              href={partyMapsUrl()}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {copy.inviteMaps}
             </a>
             <button
               className="welcome-back-link"

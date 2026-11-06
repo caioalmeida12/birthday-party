@@ -1,4 +1,4 @@
-import { PARTY_NAME } from './config'
+import { PARTY_NAME, partyInviteTitle } from './config'
 import {
   PARTY_DATE_LABEL,
   PARTY_PLACE_FULL,
@@ -12,7 +12,7 @@ import {
 /** Textos do convidado — uma fonte, tom seco de mensagem, não de onboarding. */
 export const copy = {
   inviteKicker: 'Convite',
-  inviteTitle: `Aniversário do ${PARTY_NAME}`,
+  inviteTitle: partyInviteTitle(),
   inviteWhen: `${PARTY_WEEKDAY_LABEL}, ${PARTY_DATE_LABEL} · ${PARTY_TIME_LABEL}`,
   inviteWhere: PARTY_PLACE_NAME,
   inviteWhereNote: PARTY_PLACE_NOTE,
@@ -20,7 +20,14 @@ export const copy = {
   invitePlaceFull: PARTY_PLACE_FULL,
   inviteCalendar: 'Salvar na agenda',
   inviteCalendarApple: 'Apple / outro (.ics)',
+  inviteMaps: 'Ver no mapa',
   inviteNext: 'Continuar',
+
+  hostPinTitle: 'Área do anfitrião',
+  hostPinLead: 'Só pra quem vai tocar na caixa.',
+  hostPinLabel: 'Senha',
+  hostPinError: 'Senha errada.',
+  hostPinSubmit: 'Entrar',
 
   purposeTitle: 'Duas coisas pra ajudar',
   purposePhotoTitle: 'Foto',

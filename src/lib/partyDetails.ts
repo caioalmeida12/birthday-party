@@ -11,3 +11,9 @@ export const PARTY_PLACE_FULL = `${PARTY_PLACE_NAME} (${PARTY_PLACE_NOTE}), ${PA
 export function partyInviteLine(): string {
   return `${PARTY_WHEN_SHORT} · ${PARTY_PLACE_FULL}`
 }
+
+/** Abre o lugar no Google Maps. */
+export function partyMapsUrl(): string {
+  const query = `${PARTY_PLACE_NAME}, ${PARTY_PLACE_REGION}`
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`
+}

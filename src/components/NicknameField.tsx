@@ -13,7 +13,12 @@ export function NicknameField({
   placeholder = 'Seu nome',
 }: Props) {
   const [remembered] = useState(() => getRememberedGuestName())
-  const showingRemembered = Boolean(remembered) && value === remembered
+  const [editing, setEditing] = useState(false)
+  const showingRemembered = Boolean(remembered) && value === remembered && !editing
+
+  if (showingRemembered) {
+    return null
+  }
 
   return (
     <label>
@@ -23,11 +28,14 @@ export function NicknameField({
         autoComplete="name"
         autoCapitalize="words"
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => {
+          setEditing(true)
+          onChange(e.target.value)
+        }}
         onBlur={() => rememberGuestName(value)}
         placeholder={placeholder}
       />
-      {showingRemembered ? (
+      {remembered ? (
         <span className="field-hint">É o nome que você usou ao entrar — pode mudar se quiser.</span>
       ) : (
         <span className="field-hint">A gente guarda neste celular pra próxima vez.</span>

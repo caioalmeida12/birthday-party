@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   extractIdFromPipedUrl,
   mapPipedItemsToCandidates,
+  scoreSearchCandidate,
   youtubeWatchUrl,
 } from './youtubeSearch'
 
@@ -19,41 +20,43 @@ describe('youtubeSearch helpers', () => {
     )
   })
 
-  it('mapeia os primeiros vídeos e ignora o que não é stream', () => {
+  it('prioriza match oficial e rebaixa karaoke', () => {
     const candidates = mapPipedItemsToCandidates(
       [
-        { type: 'playlist', url: '/watch?v=playlist11', title: 'Lista' },
         {
           type: 'stream',
-          url: '/watch?v=dQw4w9WgXcQ',
-          title: 'Rick Astley - Never Gonna Give You Up (Official Video)',
-          uploaderName: 'RickAstleyVEVO',
-          thumbnail: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg',
+          url: '/watch?v=karaoke1111',
+          title: 'Lembrança Boa Karaoke',
+          uploaderName: 'KaraokeChannel',
         },
         {
           type: 'stream',
-          url: '/watch?v=abcABCabcAB',
-          title: 'Outra',
-          uploaderName: 'Canal',
+          url: '/watch?v=official111',
+          title: 'Pedro e Benicio - Lembrança Boa (Official Audio)',
+          uploaderName: 'PedroBenicioVEVO',
         },
         {
           type: 'stream',
-          url: '/watch?v=dQw4w9WgXcQ',
-          title: 'Duplicata',
+          url: '/watch?v=random22222',
+          title: 'Tarcísio do Acordeon (Tarcisiologia)',
+          uploaderName: 'CanalAleatorio',
         },
       ],
       3,
+      'Lembrança Boa Pedro e Benicio',
     )
 
-    expect(candidates).toHaveLength(2)
-    expect(candidates[0]).toMatchObject({
-      videoId: 'dQw4w9WgXcQ',
-      url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-      artist: 'Rick Astley',
-      title: 'Never Gonna Give You Up',
-      thumbnailUrl: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg',
-    })
-    expect(candidates[1].videoId).toBe('abcABCabcAB')
+    const ids = candidates.map((item) => item.videoId)
+    expect(ids[0]).toBe('official111')
+    expect(ids.indexOf('karaoke1111')).toBeLessThan(ids.indexOf('random22222'))
+  })
+
+  it('pontua query contra título', () => {
+    expect(
+      scoreSearchCandidate('never gonna give you up', 'Rick Astley - Never Gonna Give You Up', 'VEVO'),
+    ).toBeGreaterThan(
+      scoreSearchCandidate('never gonna give you up', 'Random karaoke cover', 'Karaoke'),
+    )
   })
 
   it('respeita o limite pedido', () => {
@@ -62,6 +65,6 @@ describe('youtubeSearch helpers', () => {
       { type: 'stream', url: '/watch?v=bbbbbbbbbbb', title: 'B' },
       { type: 'stream', url: '/watch?v=ccccccccccc', title: 'C' },
     ]
-    expect(mapPipedItemsToCandidates(items, 1)).toHaveLength(1)
+    expect(mapPipedItemsToCandidates(items, 1, 'A')).toHaveLength(1)
   })
 })

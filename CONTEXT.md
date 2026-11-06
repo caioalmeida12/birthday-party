@@ -11,7 +11,8 @@ Site do aniversário para a galera participar pelo celular.
 
 - **Convite:** 14/11/2026 (sábado), 19h, Sítio Jatobá (minha casa), Canindezinho. Guide-in: convite (+ salvar na agenda), foto/música, nome, foto, RSVP (sim/não + acompanhantes). Migration: `supabase/migration-rsvps.sql`. Resumo em `/tocar`.
 - **Convidado:** na entrada informa o nome/apelido (obrigatório uma vez neste celular); manda música, vota (gostei / não rolou), manda foto.
-- **Anfitrião:** toca a fila na caixa (Bluetooth), reordena a fila ao vivo, remove música de vez, pula faixa. Votos mostram o gosto da galera; a ordem que toca é a que o anfitrião definir em `/tocar`.
+- **Anfitrião:** `/tocar` pede senha (`VITE_HOST_PIN`, default `jatoba14`). Toca a fila, reordena, remove, aprova fotos, vê RSVP.
+- **Convite:** mapa (Google Maps), agenda, OG tags no `index.html`. Arte opcional em `public/invite.jpg`.
 - **Tela / fundo:** o embed do YouTube **não** continua com a tela bloqueada (Premium do app não vale no site). Em `/tocar`, o modo festa é **manter a tela ligada**; dá pra abrir a faixa no app YouTube se quiser fundo com Premium (aí a fila automática do site para).
 
 ## Tom

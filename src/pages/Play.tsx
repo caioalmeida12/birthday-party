@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { HostGate } from '../components/HostGate'
 import { ModerateQueue } from '../components/ModerateQueue'
 import { PhotoModeration } from '../components/PhotoModeration'
 import { RsvpSummary } from '../components/RsvpSummary'
@@ -40,6 +41,14 @@ function youtubeThumb(videoId: string): string {
 }
 
 export function Play() {
+  return (
+    <HostGate>
+      <PlayHost />
+    </HostGate>
+  )
+}
+
+function PlayHost() {
   const [songs, setSongs] = useState<Song[]>([])
   const [playState, setPlayState] = useState<PlayQueueState>({
     playedIds: [],

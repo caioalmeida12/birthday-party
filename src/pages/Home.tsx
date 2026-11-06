@@ -2,13 +2,14 @@ import { Link } from 'react-router-dom'
 import { InviteArt } from '../components/InviteArt'
 import { PhotoMosaic } from '../components/PhotoMosaic'
 import { googleCalendarUrl } from '../lib/calendarLink'
-import { PARTY_NAME } from '../lib/config'
+import { partyInviteTitle } from '../lib/config'
 import { copy } from '../lib/copy'
 import {
   PARTY_DATE_LABEL,
   PARTY_PLACE_FULL,
   PARTY_TIME_LABEL,
   PARTY_WEEKDAY_LABEL,
+  partyMapsUrl,
 } from '../lib/partyDetails'
 
 export function Home() {
@@ -19,7 +20,7 @@ export function Home() {
       <div className="hero-content">
         <InviteArt className="invite-art invite-art-home" />
         <p className="hero-kicker">{copy.homeKicker}</p>
-        <h1 className="hero-brand">{PARTY_NAME}</h1>
+        <h1 className="hero-brand">{partyInviteTitle()}</h1>
         <p className="hero-when">
           {PARTY_WEEKDAY_LABEL}, {PARTY_DATE_LABEL} · {PARTY_TIME_LABEL}
           <span className="hero-where">{PARTY_PLACE_FULL}</span>
@@ -33,6 +34,14 @@ export function Home() {
             rel="noreferrer"
           >
             <span className="btn btn-ghost">{copy.homeCalendar}</span>
+          </a>
+          <a
+            className="hero-action"
+            href={partyMapsUrl()}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <span className="btn btn-ghost">{copy.inviteMaps}</span>
           </a>
           <Link className="hero-action" to="/fotos">
             <span className="btn btn-primary">{copy.homePhotoCta}</span>

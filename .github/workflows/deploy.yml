@@ -29,7 +29,7 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           VITE_PARTY_NAME: ${{ vars.VITE_PARTY_NAME }}
-          VITE_PARTY_TAGLINE: ${{ vars.VITE_PARTY_TAGLINE }}
+          VITE_HOST_PIN: ${{ vars.VITE_HOST_PIN }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
