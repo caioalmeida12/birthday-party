@@ -562,6 +562,33 @@ a:hover {
   color: rgba(247, 231, 194, 0.72);
 }
 
+.hero-where-link {
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  text-decoration-color: rgba(247, 231, 194, 0.35);
+  color: rgba(247, 231, 194, 0.78);
+}
+
+.hero-where-link:hover {
+  color: var(--amber);
+  text-decoration-color: var(--amber);
+}
+
+.hero-meta-links {
+  margin: 0.65rem 0 0;
+  font-size: 0.9rem;
+}
+
+.hero-meta-links a {
+  color: rgba(247, 231, 194, 0.55);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.hero-meta-links a:hover {
+  color: var(--amber);
+}
+
 .site-nav a {
   color: rgba(247, 231, 194, 0.72);
   text-decoration: none;
@@ -725,8 +752,8 @@ main {
 .hero-actions-stack {
   flex-direction: column;
   align-items: center;
-  gap: 1.25rem;
-  width: min(22rem, 100%);
+  gap: 0.75rem;
+  width: min(18rem, 100%);
   margin-inline: auto;
 }
 

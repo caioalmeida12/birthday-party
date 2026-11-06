@@ -23,37 +23,21 @@ export function Home() {
         <h1 className="hero-brand">{partyInviteTitle()}</h1>
         <p className="hero-when">
           {PARTY_WEEKDAY_LABEL}, {PARTY_DATE_LABEL} · {PARTY_TIME_LABEL}
-          <span className="hero-where">{PARTY_PLACE_FULL}</span>
+          <a className="hero-where hero-where-link" href={partyMapsUrl()} target="_blank" rel="noreferrer">
+            {PARTY_PLACE_FULL}
+          </a>
         </p>
-        <p className="hero-tagline">{copy.homeTagline}</p>
+        <p className="hero-meta-links">
+          <a href={googleCalendarUrl()} target="_blank" rel="noreferrer">
+            {copy.homeCalendar}
+          </a>
+        </p>
         <div className="hero-actions hero-actions-stack">
-          <a
-            className="hero-action"
-            href={googleCalendarUrl()}
-            target="_blank"
-            rel="noreferrer"
-          >
-            <span className="btn btn-ghost">{copy.homeCalendar}</span>
-          </a>
-          <a
-            className="hero-action"
-            href={partyMapsUrl()}
-            target="_blank"
-            rel="noreferrer"
-          >
-            <span className="btn btn-ghost">{copy.inviteMaps}</span>
-          </a>
           <Link className="hero-action" to="/camera">
-            <span className="btn btn-primary">{copy.hostQrCameraTitle}</span>
-            <span className="hero-action-hint">{copy.homeLivePhotoHint}</span>
+            <span className="btn btn-primary btn-lg">{copy.hostQrCameraTitle}</span>
           </Link>
           <Link className="hero-action" to="/musicas">
-            <span className="btn btn-ghost">{copy.homeMusicCta}</span>
-            <span className="hero-action-hint">{copy.homeMusicHint}</span>
-          </Link>
-          <Link className="hero-action" to="/fotos">
-            <span className="btn btn-ghost">{copy.homePhotoCta}</span>
-            <span className="hero-action-hint">{copy.homePhotoHint}</span>
+            <span className="btn btn-ghost btn-lg">{copy.homeMusicCta}</span>
           </Link>
         </div>
       </div>

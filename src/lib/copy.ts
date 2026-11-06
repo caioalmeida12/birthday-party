@@ -73,7 +73,7 @@ export const copy = {
   homePhotoCta: 'Foto pra decoração',
   homePhotoHint: 'Impressão. Antes do dia 14.',
   homeLivePhotoHint: 'Aparece no mural na festa.',
-  homeMusicCta: 'Enviar música',
+  homeMusicCta: 'Música',
   homeMusicHint: 'Toca na caixa no dia.',
 
   cameraTitle: 'Foto pra TV',
