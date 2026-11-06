@@ -276,14 +276,14 @@ export function Play() {
       if (started && wasCurrent && !song.skipped) {
         if (nextQueue.length === 0) {
           setStatus('idle')
-          setError('Fila vazia — todas as faixas estão em skip.')
+          setError('Fila vazia — todas as músicas foram tiradas da festa.')
           playerRef.current?.stopVideo()
         } else {
           await playSongAt(0, { autoplay: true })
         }
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Falha ao dar skip.')
+      setError(err instanceof Error ? err.message : 'Não deu pra tirar a música.')
     } finally {
       setVotingId(null)
     }
@@ -331,7 +331,8 @@ export function Play() {
       <header className="page-header">
         <h1>Tocar na festa</h1>
         <p>
-          Bluetooth na caixa, fila por votos. Skip tira a faixa da rotação; upvote sobe na fila.
+          Liga o celular na caixa. A fila sobe com os “Gostei”. “Tirar da festa” remove a música da
+          rotação.
         </p>
       </header>
 
@@ -340,9 +341,9 @@ export function Play() {
           <div className="player-start">
             <p className="muted">
               {loading
-                ? 'Carregando playlist…'
+                ? 'Carregando a fila…'
                 : queue.length === 0
-                  ? 'Nada na fila (tudo em skip ou vazio).'
+                  ? 'Nada na fila — a galera ainda não mandou música (ou tudo foi tirado).'
                   : `${queue.length} música(s) na fila.`}
             </p>
             <button
@@ -371,6 +372,7 @@ export function Play() {
               ) : null}
               <SongVoteControls
                 song={current}
+                showSkip
                 disabled={votingId === current.id}
                 onUpvote={(id) => {
                   void handleVote(id, 1)
@@ -418,21 +420,21 @@ export function Play() {
                   void skipCurrent()
                 }}
               >
-                Skip
+                Tirar da festa
               </button>
             </div>
           ) : null}
 
-          {started && status === 'loading' ? <p className="muted">Preparando faixa…</p> : null}
+          {started && status === 'loading' ? <p className="muted">Preparando a música…</p> : null}
           {error ? <p className="form-msg form-msg-error">{error}</p> : null}
         </div>
       </div>
 
       <div className="panel list-panel">
-        <h2>Fila por votos</h2>
+        <h2>Fila da festa</h2>
         {loading ? <p className="muted">Carregando…</p> : null}
         {!loading && board.length === 0 ? (
-          <p className="muted">Nenhuma música ainda — peça pra galera mandar links.</p>
+          <p className="muted">Nenhuma música ainda — peça pra galera mandar.</p>
         ) : null}
         <ol className="song-list play-queue">
           {board.map((song) => {
@@ -469,6 +471,7 @@ export function Play() {
                   </button>
                   <SongVoteControls
                     song={song}
+                    showSkip
                     disabled={votingId === song.id}
                     onUpvote={(id) => {
                       void handleVote(id, 1)

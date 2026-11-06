@@ -53,11 +53,11 @@ export function Photos() {
       setPhotos((prev) => [photo, ...prev])
       setFile(null)
       setSubmittedBy('')
-      setSuccess('Foto enviada! Vai entrar na decoração.')
+      setSuccess('Foto recebida! Vai entrar na decoração.')
       const input = document.getElementById('photo-file') as HTMLInputElement | null
       if (input) input.value = ''
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Falha ao enviar a foto.')
+      setError(err instanceof Error ? err.message : 'Não deu pra enviar a foto.')
     } finally {
       setSubmitting(false)
     }
@@ -66,10 +66,10 @@ export function Photos() {
   return (
     <section className="page">
       <header className="page-header">
-        <h1>Fotos pra decoração</h1>
+        <h1>Manda uma foto</h1>
         <p>
-          Manda uma imagem (até {Math.round(MAX_PHOTO_BYTES / (1024 * 1024))} MB). Eu imprimo e
-          uso na festa.
+          Manda antes do dia — eu imprimo pra decorar a festa. Até{' '}
+          {Math.round(MAX_PHOTO_BYTES / (1024 * 1024))} MB.
         </p>
       </header>
 
@@ -101,7 +101,7 @@ export function Photos() {
       </form>
 
       <div className="panel list-panel">
-        <h2>Galeria</h2>
+        <h2>Já chegaram</h2>
         {loading ? <p className="muted">Carregando…</p> : null}
         {!loading && photos.length === 0 ? (
           <p className="muted">Nenhuma foto ainda — manda a primeira.</p>

@@ -190,6 +190,34 @@ main {
   justify-content: center;
 }
 
+.hero-actions-stack {
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  width: min(22rem, 100%);
+  margin-inline: auto;
+}
+
+.hero-action {
+  display: grid;
+  gap: 0.45rem;
+  width: 100%;
+  text-decoration: none;
+  justify-items: center;
+}
+
+.hero-action .btn {
+  width: 100%;
+}
+
+.hero-action-hint {
+  max-width: 18rem;
+  text-align: center;
+  font-size: 0.92rem;
+  line-height: 1.4;
+  color: rgba(247, 231, 194, 0.68);
+}
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -491,12 +519,30 @@ main {
   width: 100%;
 }
 
+.field-hint {
+  margin: -0.35rem 0 0;
+  font-size: 0.85rem;
+  color: rgba(247, 231, 194, 0.55);
+  line-height: 1.4;
+}
+
 .vote-controls {
+  display: grid;
+  gap: 0.45rem;
+  flex-shrink: 0;
+}
+
+.vote-summary {
+  margin: 0;
+  font-size: 0.8rem;
+  color: rgba(247, 231, 194, 0.55);
+}
+
+.vote-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
   align-items: center;
-  flex-shrink: 0;
 }
 
 .vote-btn {
@@ -504,9 +550,9 @@ main {
   background: rgba(13, 31, 24, 0.55);
   color: rgba(247, 231, 194, 0.85);
   border-radius: 999px;
-  padding: 0.35rem 0.65rem;
+  padding: 0.45rem 0.85rem;
   font: inherit;
-  font-size: 0.82rem;
+  font-size: 0.88rem;
   font-weight: 600;
   cursor: pointer;
 }
@@ -531,23 +577,6 @@ main {
 .vote-btn-skip-on {
   border-color: rgba(240, 180, 41, 0.7);
   color: var(--amber);
-}
-
-.vote-score {
-  min-width: 1.75rem;
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-  font-weight: 700;
-  font-size: 0.9rem;
-  color: rgba(247, 231, 194, 0.7);
-}
-
-.vote-score-pos {
-  color: var(--ok);
-}
-
-.vote-score-neg {
-  color: var(--danger);
 }
 
 .btn-danger-ghost {

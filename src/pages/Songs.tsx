@@ -1,14 +1,11 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { Link } from 'react-router-dom'
 import { SongVoteControls } from '../components/SongVoteControls'
 import {
   castSongVote,
   createSong,
   listSongs,
-  skipSong,
   sortSongsForBoard,
   subscribeToPlaylist,
-  unskipSong,
   type Song,
 } from '../lib/songs'
 import { isSupabaseConfigured } from '../lib/supabase'
@@ -66,7 +63,7 @@ export function Songs() {
     setError(null)
 
     if (!isAllowedMusicUrl(url)) {
-      setError('Use um link do Spotify ou YouTube.')
+      setError('Cola um endereço do Spotify ou do YouTube.')
       return
     }
 
@@ -76,9 +73,9 @@ export function Songs() {
       await refreshSongs()
       setUrl('')
       setSubmittedBy('')
-      setSuccess('Música adicionada à playlist!')
+      setSuccess('Pronto! Sua música entra na festa.')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Falha ao enviar a música.')
+      setError(err instanceof Error ? err.message : 'Não deu pra enviar a música.')
     } finally {
       setSubmitting(false)
     }
@@ -91,49 +88,37 @@ export function Songs() {
       const data = await castSongVote(songId, vote)
       setSongs(sortSongsForBoard(data))
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Falha ao votar.')
+      setError(err instanceof Error ? err.message : 'Não deu pra registrar seu voto.')
     } finally {
       setVotingId(null)
     }
   }
 
-  async function handleSkipToggle(song: Song) {
-    setVotingId(song.id)
-    setError(null)
-    try {
-      const data = song.skipped ? await unskipSong(song.id) : await skipSong(song.id)
-      setSongs(sortSongsForBoard(data))
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Falha ao dar skip.')
-    } finally {
-      setVotingId(null)
-    }
-  }
+  const visibleSongs = songs.filter((song) => !song.skipped)
 
   return (
     <section className="page">
       <header className="page-header">
-        <h1>Playlist da festa</h1>
-        <p>Cola o link, vote e dê skip no que não rola. A fila do player segue o placar.</p>
-        <p className="page-header-action">
-          <Link className="btn btn-ghost" to="/tocar">
-            Abrir player da festa
-          </Link>
+        <h1>Manda uma música</h1>
+        <p>
+          Essa música vai tocar na festa, na caixa de som. Cola o endereço do Spotify ou do YouTube
+          e a galera também pode dizer se gostou.
         </p>
       </header>
 
       <form className="panel form" onSubmit={onSubmit}>
         <label>
-          Link (Spotify ou YouTube)
+          Cola aqui o endereço do Spotify ou YouTube
           <input
             required
             type="url"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            placeholder="https://open.spotify.com/track/..."
+            placeholder="cole aqui…"
             autoComplete="off"
           />
         </label>
+        <p className="field-hint">No celular: compartilhar → copiar link</p>
         <label>
           Seu apelido (opcional)
           <input
@@ -146,21 +131,21 @@ export function Songs() {
         {error ? <p className="form-msg form-msg-error">{error}</p> : null}
         {success ? <p className="form-msg form-msg-ok">{success}</p> : null}
         <button className="btn btn-primary" type="submit" disabled={submitting || !isSupabaseConfigured}>
-          {submitting ? 'Descobrindo e enviando…' : 'Adicionar à playlist'}
+          {submitting ? 'Buscando a música…' : 'Enviar música'}
         </button>
       </form>
 
       <div className="panel list-panel">
-        <h2>Já sugeridas</h2>
+        <h2>O que a galera mandou</h2>
         {loading ? <p className="muted">Carregando…</p> : null}
-        {!loading && songs.length === 0 ? (
-          <p className="muted">Nenhuma música ainda — seja a primeira pessoa.</p>
+        {!loading && visibleSongs.length === 0 ? (
+          <p className="muted">Nenhuma música ainda — manda a primeira.</p>
         ) : null}
         <ul className="song-list">
-          {songs.map((song, index) => (
+          {visibleSongs.map((song, index) => (
             <li
               key={song.id}
-              className={song.skipped ? 'song-item song-item-skipped' : 'song-item'}
+              className="song-item"
               style={{ animationDelay: `${index * 40}ms` }}
             >
               <div className="song-main">
@@ -180,9 +165,6 @@ export function Songs() {
                 }}
                 onDownvote={(id) => {
                   void handleVote(id, -1)
-                }}
-                onSkipToggle={(item) => {
-                  void handleSkipToggle(item)
                 }}
               />
             </li>
