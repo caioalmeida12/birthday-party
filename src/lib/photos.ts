@@ -68,7 +68,7 @@ async function compressImage(file: File): Promise<Blob> {
     return file
   }
 
-  const bitmap = await createImageBitmap(file)
+  const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' })
   const maxSide = 1920
   const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height))
   const width = Math.round(bitmap.width * scale)
