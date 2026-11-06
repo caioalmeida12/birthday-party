@@ -1,22 +1,29 @@
 import { useState, type FormEvent } from 'react'
+import { downloadIcs, googleCalendarUrl } from '../lib/calendarLink'
 import { copy } from '../lib/copy'
 
 export type WelcomeGuideFinish = {
   name: string
   goToPhotos: boolean
+  attending: boolean
+  plusOnes: number
 }
 
 type Props = {
   initialName?: string
-  onFinish: (result: WelcomeGuideFinish) => void
+  onFinish: (result: WelcomeGuideFinish) => void | Promise<void>
 }
 
-const STEPS = 4
+const STEPS = 5
 
 export function WelcomeGuide({ initialName = '', onFinish }: Props) {
   const [step, setStep] = useState(0)
   const [draft, setDraft] = useState(initialName)
+  const [goToPhotos, setGoToPhotos] = useState(false)
+  const [attending, setAttending] = useState<boolean | null>(null)
+  const [plusOnes, setPlusOnes] = useState(0)
   const [error, setError] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
 
   function goNext() {
     setError(null)
@@ -44,13 +51,40 @@ export function WelcomeGuide({ initialName = '', onFinish }: Props) {
     goNext()
   }
 
-  function finish(goToPhotos: boolean) {
+  function continueFromPhoto(wantPhotos: boolean) {
+    if (!requireName()) {
+      setStep(2)
+      return
+    }
+    setGoToPhotos(wantPhotos)
+    goNext()
+  }
+
+  async function submitRsvp(event: FormEvent) {
+    event.preventDefault()
     const name = requireName()
     if (!name) {
       setStep(2)
       return
     }
-    onFinish({ name, goToPhotos })
+    if (attending === null) {
+      setError(copy.rsvpError)
+      return
+    }
+
+    setSubmitting(true)
+    setError(null)
+    try {
+      await onFinish({
+        name,
+        goToPhotos,
+        attending,
+        plusOnes: attending ? plusOnes : 0,
+      })
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Não deu pra salvar.')
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -87,6 +121,21 @@ export function WelcomeGuide({ initialName = '', onFinish }: Props) {
                 </dd>
               </div>
             </dl>
+            <a
+              className="btn btn-ghost welcome-full"
+              href={googleCalendarUrl()}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {copy.inviteCalendar}
+            </a>
+            <button
+              className="welcome-back-link"
+              type="button"
+              onClick={() => downloadIcs()}
+            >
+              {copy.inviteCalendarApple}
+            </button>
             <button className="btn btn-primary btn-lg welcome-full" type="button" onClick={goNext}>
               {copy.inviteNext}
             </button>
@@ -163,20 +212,85 @@ export function WelcomeGuide({ initialName = '', onFinish }: Props) {
             <button
               className="btn btn-primary btn-lg welcome-full"
               type="button"
-              onClick={() => finish(true)}
+              onClick={() => continueFromPhoto(true)}
             >
               {copy.photoAskCta}
             </button>
             <button
               className="btn btn-ghost welcome-full"
               type="button"
-              onClick={() => finish(false)}
+              onClick={() => continueFromPhoto(false)}
             >
               {copy.photoAskLater}
             </button>
             <button className="welcome-back-link" type="button" onClick={goBack}>
               {copy.photoAskBack}
             </button>
+          </div>
+        ) : null}
+
+        {step === 4 ? (
+          <div className="welcome-pane" key="rsvp">
+            <h1 id="welcome-guide-title" className="welcome-guide-title">
+              {copy.rsvpTitle}
+            </h1>
+            <p className="welcome-guide-lead">{copy.rsvpLead}</p>
+            <form className="form welcome-name-form" onSubmit={(event) => void submitRsvp(event)}>
+              <div className="rsvp-choice" role="group" aria-label={copy.rsvpTitle}>
+                <button
+                  type="button"
+                  className={`btn rsvp-choice-btn${attending === true ? ' rsvp-choice-on' : ' btn-ghost'}`}
+                  aria-pressed={attending === true}
+                  onClick={() => {
+                    setAttending(true)
+                    setError(null)
+                  }}
+                >
+                  {copy.rsvpYes}
+                </button>
+                <button
+                  type="button"
+                  className={`btn rsvp-choice-btn${attending === false ? ' rsvp-choice-on' : ' btn-ghost'}`}
+                  aria-pressed={attending === false}
+                  onClick={() => {
+                    setAttending(false)
+                    setPlusOnes(0)
+                    setError(null)
+                  }}
+                >
+                  {copy.rsvpNo}
+                </button>
+              </div>
+
+              {attending === true ? (
+                <label>
+                  {copy.rsvpPlusLabel}
+                  <input
+                    type="number"
+                    min={0}
+                    max={30}
+                    inputMode="numeric"
+                    value={plusOnes}
+                    onChange={(event) => {
+                      const next = Number(event.target.value)
+                      setPlusOnes(Number.isFinite(next) ? Math.max(0, Math.min(30, next)) : 0)
+                    }}
+                  />
+                  <span className="field-hint">{copy.rsvpPlusHint}</span>
+                </label>
+              ) : null}
+
+              {error ? <p className="form-msg form-msg-error">{error}</p> : null}
+
+              <div className="welcome-nav">
+                <button className="btn btn-ghost" type="button" onClick={goBack} disabled={submitting}>
+                  {copy.rsvpBack}
+                </button>
+                <button className="btn btn-primary" type="submit" disabled={submitting}>
+                  {submitting ? copy.rsvpSubmitting : copy.rsvpSubmit}
+                </button>
+              </div>
+            </form>
           </div>
         ) : null}
       </div>

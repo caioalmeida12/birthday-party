@@ -15,6 +15,8 @@ import {
   markWelcomeGuideSeen,
   rememberGuestName,
 } from '../lib/guestProfile'
+import { upsertRsvp } from '../lib/rsvps'
+import { isSupabaseConfigured } from '../lib/supabase'
 import { WelcomeGuide, type WelcomeGuideFinish } from './WelcomeGuide'
 
 type GuestSessionValue = {
@@ -117,7 +119,14 @@ export function GuestSessionProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const finishGuide = useCallback(
-    (result: WelcomeGuideFinish) => {
+    async (result: WelcomeGuideFinish) => {
+      if (isSupabaseConfigured) {
+        await upsertRsvp({
+          name: result.name,
+          attending: result.attending,
+          plusOnes: result.plusOnes,
+        })
+      }
       markWelcomeGuideSeen()
       setGuideSeen(true)
       enterWithName(result.name)

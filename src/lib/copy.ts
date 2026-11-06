@@ -18,6 +18,8 @@ export const copy = {
   inviteWhereNote: PARTY_PLACE_NOTE,
   inviteWhereSub: PARTY_PLACE_REGION,
   invitePlaceFull: PARTY_PLACE_FULL,
+  inviteCalendar: 'Salvar na agenda',
+  inviteCalendarApple: 'Apple / outro (.ics)',
   inviteNext: 'Continuar',
 
   purposeTitle: 'Duas coisas pra ajudar',
@@ -42,6 +44,17 @@ export const copy = {
   photoAskLater: 'Depois',
   photoAskBack: 'Voltar',
 
+  rsvpTitle: 'Você vem?',
+  rsvpLead: 'Pra eu planejar comida e bebida.',
+  rsvpYes: 'Sim',
+  rsvpNo: 'Não',
+  rsvpPlusLabel: 'Quantas pessoas vêm com você?',
+  rsvpPlusHint: 'Além de você. 0 = só você.',
+  rsvpError: 'Marca se consegue vir.',
+  rsvpSubmit: 'Pronto',
+  rsvpSubmitting: 'Salvando…',
+  rsvpBack: 'Voltar',
+
   gateKicker: 'Oi',
   gateTitle: PARTY_NAME,
   gateBody: 'Escreve como te chamam — aparece no que você enviar.',
@@ -49,10 +62,18 @@ export const copy = {
 
   homeKicker: 'Convite',
   homeTagline: 'Foto pra imprimir na decoração. Música pra tocar na festa.',
+  homeCalendar: 'Salvar na agenda',
   homePhotoCta: 'Enviar foto',
   homePhotoHint: 'Impressão pra decoração. Antes do dia 14.',
   homeMusicCta: 'Enviar música',
   homeMusicHint: 'Toca na caixa no dia.',
+
+  rsvpHostTitle: 'Quem vem',
+  rsvpHostEmpty: 'Ninguém confirmou ainda.',
+  rsvpHostHeads: (n: number) => `${n} pessoa${n === 1 ? '' : 's'} pra comida/bebida`,
+  rsvpHostYes: (n: number) => `${n} sim`,
+  rsvpHostNo: (n: number) => `${n} não`,
+  rsvpHostWith: (n: number) => (n === 0 ? 'só' : `+${n}`),
 
   songsTitle: 'Música',
   songsLead: 'Nome ou link do Spotify/YouTube. Entra na fila da festa.',

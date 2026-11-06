@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { ModerateQueue } from '../components/ModerateQueue'
+import { RsvpSummary } from '../components/RsvpSummary'
 import { SongVoteControls } from '../components/SongVoteControls'
 import {
   advancePlayQueue,
@@ -452,6 +453,8 @@ export function Play() {
           Tela bloqueada não segue tocando aqui (só no app YouTube). Deixa a tela ligada.
         </p>
       </div>
+
+      <RsvpSummary />
 
       <div className="panel player-panel">
         {!started ? (

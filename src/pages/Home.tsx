@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { googleCalendarUrl } from '../lib/calendarLink'
 import { PARTY_NAME } from '../lib/config'
 import { copy } from '../lib/copy'
 import {
@@ -21,6 +22,14 @@ export function Home() {
         </p>
         <p className="hero-tagline">{copy.homeTagline}</p>
         <div className="hero-actions hero-actions-stack">
+          <a
+            className="hero-action"
+            href={googleCalendarUrl()}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <span className="btn btn-ghost">{copy.homeCalendar}</span>
+          </a>
           <Link className="hero-action" to="/fotos">
             <span className="btn btn-primary">{copy.homePhotoCta}</span>
             <span className="hero-action-hint">{copy.homePhotoHint}</span>
