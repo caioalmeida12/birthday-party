@@ -99,11 +99,13 @@ export function LivePhotoStage({ canModerate = false }: Props) {
       {error ? <p className="form-msg form-msg-error host-photo-stage-msg">{error}</p> : null}
       {current ? (
         <figure className="host-photo-slide">
-          <img
-            key={current.id}
-            src={current.publicUrl}
-            alt={current.submitted_by || 'Foto ao vivo'}
-          />
+          <div className="host-photo-media">
+            <img
+              key={current.id}
+              src={current.publicUrl}
+              alt={current.submitted_by || 'Foto ao vivo'}
+            />
+          </div>
           <figcaption>
             <span>{current.submitted_by || copy.photoModAnonymous}</span>
             <span className="host-photo-count">
