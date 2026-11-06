@@ -9,24 +9,25 @@ type Props = {
 }
 
 export function SongThumb({ song, className = 'song-thumb' }: Props) {
-  const [src, setSrc] = useState<string | null>(() => directSongThumbUrl(song.url))
+  const direct = directSongThumbUrl(song.url)
+  const [resolved, setResolved] = useState<string | null>(null)
   const [failed, setFailed] = useState(false)
+  const src = direct ?? resolved
 
   useEffect(() => {
-    const direct = directSongThumbUrl(song.url)
     if (direct) {
-      setSrc(direct)
+      setResolved(null)
       setFailed(false)
       return
     }
 
     let cancelled = false
-    setSrc(null)
+    setResolved(null)
     setFailed(false)
 
     void resolvePlayableVideoId(song)
       .then((videoId) => {
-        if (!cancelled) setSrc(youtubeThumbUrl(videoId, 'mq'))
+        if (!cancelled) setResolved(youtubeThumbUrl(videoId, 'mq'))
       })
       .catch(() => {
         if (!cancelled) setFailed(true)
@@ -35,7 +36,7 @@ export function SongThumb({ song, className = 'song-thumb' }: Props) {
     return () => {
       cancelled = true
     }
-  }, [song.id, song.url, song.title, song.artist])
+  }, [direct, song])
 
   if (failed || !src) {
     return <span className={`${className} song-thumb-empty`} aria-hidden />
