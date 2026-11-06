@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { listPhotos, type Photo } from '../lib/photos'
+import { listMosaicPhotos, type Photo } from '../lib/photos'
 import { isSupabaseConfigured } from '../lib/supabase'
 
 const MIN_TILES = 24
@@ -7,16 +7,16 @@ const MIN_TILES = 24
 function fillTiles(photos: Photo[], min: number): Photo[] {
   if (photos.length === 0) return []
   const tiles: Photo[] = []
-  while (tiles.length < Math.max(min, photos.length)) {
+  while (tiles.length < min) {
     for (const photo of photos) {
       tiles.push(photo)
-      if (tiles.length >= min && tiles.length >= photos.length) break
+      if (tiles.length >= min) break
     }
   }
   return tiles
 }
 
-/** Mosaico das fotos aprovadas — fundo da home. */
+/** Mosaico das fotos — fundo do guide e da home. */
 export function PhotoMosaic() {
   const [photos, setPhotos] = useState<Photo[]>([])
 
@@ -24,7 +24,7 @@ export function PhotoMosaic() {
     if (!isSupabaseConfigured) return
     let cancelled = false
 
-    void listPhotos()
+    void listMosaicPhotos()
       .then((data) => {
         if (!cancelled) setPhotos(data)
       })

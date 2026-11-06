@@ -183,14 +183,20 @@ a:hover {
 .welcome-guide-atmosphere {
   position: absolute;
   inset: -10% -5%;
+  z-index: 0;
   background:
     radial-gradient(circle at 30% 40%, rgba(240, 180, 41, 0.16), transparent 40%),
     radial-gradient(circle at 70% 60%, rgba(47, 107, 79, 0.45), transparent 45%);
   pointer-events: none;
 }
 
+.welcome-guide .photo-mosaic {
+  z-index: 0;
+}
+
 .welcome-guide-card {
   position: relative;
+  z-index: 1;
   width: min(28rem, 100%);
   padding: 1.75rem 1.5rem 1.5rem;
   border-radius: var(--radius);
@@ -616,8 +622,8 @@ main {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(10, 24, 18, 0.55) 0%, rgba(13, 31, 24, 0.78) 45%, rgba(10, 24, 18, 0.92) 100%),
-    radial-gradient(ellipse 70% 50% at 50% 40%, rgba(13, 31, 24, 0.2), rgba(13, 31, 24, 0.75));
+    linear-gradient(180deg, rgba(10, 24, 18, 0.42) 0%, rgba(13, 31, 24, 0.62) 50%, rgba(10, 24, 18, 0.82) 100%),
+    radial-gradient(ellipse 70% 50% at 50% 40%, rgba(13, 31, 24, 0.15), rgba(13, 31, 24, 0.55));
 }
 
 @keyframes mosaic-in {

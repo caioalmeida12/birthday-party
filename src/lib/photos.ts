@@ -98,40 +98,47 @@ function extensionFor(blob: Blob, originalName: string): string {
   return fromName || 'jpg'
 }
 
-/** Galeria pública: só aprovadas. */
-export async function listPhotos(): Promise<Photo[]> {
+async function fetchPhotoRows(approvedOnly: boolean | null): Promise<Photo[]> {
   const client = requireSupabase()
-  const { data, error } = await client
-    .from('photos')
-    .select(PHOTO_SELECT)
-    .eq('approved', true)
-    .order('created_at', { ascending: false })
+  let query = client.from('photos').select(PHOTO_SELECT).order('created_at', { ascending: false })
+  if (approvedOnly === true) query = query.eq('approved', true)
+  if (approvedOnly === false) query = query.eq('approved', false)
 
+  const { data, error } = await query
   if (error) {
-    const hinted = migrationHint(error)
-    if (hinted) throw hinted
+    // Coluna approved ainda não existe: lista tudo.
+    if (error.code === 'PGRST204' || /approved/.test(error.message)) {
+      const fallback = await client
+        .from('photos')
+        .select('id, storage_path, submitted_by, created_at')
+        .order('created_at', { ascending: false })
+      if (fallback.error) throw fallback.error
+      return ((fallback.data as PhotoRow[] | null) ?? []).map(withPublicUrl)
+    }
     throw error
   }
 
   return ((data as PhotoRow[] | null) ?? []).map(withPublicUrl)
 }
 
+/** Galeria pública: só aprovadas. */
+export async function listPhotos(): Promise<Photo[]> {
+  return fetchPhotoRows(true)
+}
+
+/**
+ * Fundo da home/guide: preferem aprovadas; se ainda não houver nenhuma,
+ * usa as enviadas (pra o mosaico não ficar vazio no começo).
+ */
+export async function listMosaicPhotos(): Promise<Photo[]> {
+  const approved = await fetchPhotoRows(true)
+  if (approved.length > 0) return approved
+  return fetchPhotoRows(null)
+}
+
 /** Fila do anfitrião: pendentes de revisão. */
 export async function listPendingPhotos(): Promise<Photo[]> {
-  const client = requireSupabase()
-  const { data, error } = await client
-    .from('photos')
-    .select(PHOTO_SELECT)
-    .eq('approved', false)
-    .order('created_at', { ascending: true })
-
-  if (error) {
-    const hinted = migrationHint(error)
-    if (hinted) throw hinted
-    throw error
-  }
-
-  return ((data as PhotoRow[] | null) ?? []).map(withPublicUrl)
+  return fetchPhotoRows(false)
 }
 
 export async function uploadPhoto(input: PhotoInput): Promise<Photo> {

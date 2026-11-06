@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { downloadIcs, googleCalendarUrl } from '../lib/calendarLink'
 import { copy } from '../lib/copy'
 import { InviteArt } from './InviteArt'
+import { PhotoMosaic } from './PhotoMosaic'
 
 export type WelcomeGuideFinish = {
   name: string
@@ -91,6 +92,7 @@ export function WelcomeGuide({ initialName = '', onFinish }: Props) {
   return (
     <section className="welcome-guide" aria-labelledby="welcome-guide-title">
       <div className="welcome-guide-atmosphere" aria-hidden="true" />
+      <PhotoMosaic />
       <div className="welcome-guide-card">
         <p className="hero-kicker">{copy.inviteKicker}</p>
         <div className="welcome-steps" aria-hidden="true">
