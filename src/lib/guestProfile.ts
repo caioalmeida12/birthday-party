@@ -1,5 +1,3 @@
-import { useState } from 'react'
-
 const NAME_KEY = 'birthday-party-guest-name'
 
 export function getRememberedGuestName(): string {
@@ -18,14 +16,4 @@ export function rememberGuestName(name: string): void {
   } catch {
     // private mode / quota
   }
-}
-
-export function useGuestNickname(): [string, (value: string) => void, () => void] {
-  const [value, setValue] = useState(() => getRememberedGuestName())
-
-  function persist() {
-    rememberGuestName(value)
-  }
-
-  return [value, setValue, persist]
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
+import { useGuestNickname } from '../components/GuestSession'
 import { NicknameField } from '../components/NicknameField'
-import { useGuestNickname } from '../lib/guestProfile'
 import { SongVoteControls } from '../components/SongVoteControls'
 import {
   castSongVote,

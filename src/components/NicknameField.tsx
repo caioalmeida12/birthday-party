@@ -28,9 +28,9 @@ export function NicknameField({
         placeholder={placeholder}
       />
       {showingRemembered ? (
-        <span className="field-hint">Já lembramos de você neste celular.</span>
+        <span className="field-hint">É o nome que você usou ao entrar — pode mudar se quiser.</span>
       ) : (
-        <span className="field-hint">Na próxima vez a gente preenche sozinho.</span>
+        <span className="field-hint">A gente guarda neste celular pra próxima vez.</span>
       )}
     </label>
   )

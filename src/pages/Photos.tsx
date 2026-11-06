@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
+import { useGuestNickname } from '../components/GuestSession'
 import { NicknameField } from '../components/NicknameField'
-import { useGuestNickname } from '../lib/guestProfile'
 import { MAX_PHOTO_BYTES } from '../lib/config'
 import { listPhotos, uploadPhoto, type Photo } from '../lib/photos'
 import { isSupabaseConfigured } from '../lib/supabase'
