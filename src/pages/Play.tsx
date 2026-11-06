@@ -9,6 +9,7 @@ import {
   startPlayQueue,
   type PlayQueueState,
 } from '../lib/playQueue'
+import { extractYouTubeId } from '../lib/mediaIds'
 import { resolvePlayableVideoId } from '../lib/resolvePlayable'
 import {
   castSongVote,
@@ -32,6 +33,10 @@ import {
 
 type PlayerStatus = 'idle' | 'loading' | 'playing' | 'paused' | 'error'
 
+function youtubeThumb(videoId: string): string {
+  return `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`
+}
+
 export function Play() {
   const [songs, setSongs] = useState<Song[]>([])
   const [playState, setPlayState] = useState<PlayQueueState>({
@@ -42,6 +47,7 @@ export function Play() {
   const [status, setStatus] = useState<PlayerStatus>('idle')
   const [error, setError] = useState<string | null>(null)
   const [started, setStarted] = useState(false)
+  const [keepScreenOn, setKeepScreenOn] = useState(true)
   const [votingId, setVotingId] = useState<string | null>(null)
   const [moderationBusyId, setModerationBusyId] = useState<string | null>(null)
 
@@ -49,9 +55,31 @@ export function Play() {
   const songsRef = useRef<Song[]>([])
   const playStateRef = useRef<PlayQueueState>(playState)
   const wakeLockRef = useRef<WakeLockSentinel | null>(null)
+  const keepScreenOnRef = useRef(true)
+  const currentVideoIdRef = useRef<string | null>(null)
   const advancingRef = useRef(false)
   const bootstrappedRef = useRef(false)
   const skipStreakRef = useRef(0)
+
+  async function requestWakeLock() {
+    if (!keepScreenOnRef.current) return
+    try {
+      if ('wakeLock' in navigator) {
+        wakeLockRef.current = await navigator.wakeLock.request('screen')
+      }
+    } catch {
+      // unsupported / denied
+    }
+  }
+
+  async function releaseWakeLock() {
+    try {
+      await wakeLockRef.current?.release()
+    } catch {
+      // already released
+    }
+    wakeLockRef.current = null
+  }
 
   useEffect(() => {
     songsRef.current = songs
@@ -60,6 +88,17 @@ export function Play() {
   useEffect(() => {
     playStateRef.current = playState
   }, [playState])
+
+  useEffect(() => {
+    keepScreenOnRef.current = keepScreenOn
+    if (!keepScreenOn) {
+      void releaseWakeLock()
+      return
+    }
+    if (status === 'playing') {
+      void requestWakeLock()
+    }
+  }, [keepScreenOn, status])
 
   const queueView = buildPlayQueue(songs, playState)
   const current = queueView.current
@@ -111,27 +150,22 @@ export function Play() {
     return () => {
       playerRef.current?.destroy()
       playerRef.current = null
-      void wakeLockRef.current?.release()
-      wakeLockRef.current = null
+      void releaseWakeLock()
     }
   }, [])
 
-  async function requestWakeLock() {
-    try {
-      if ('wakeLock' in navigator) {
-        wakeLockRef.current = await navigator.wakeLock.request('screen')
-      }
-    } catch {
-      // unsupported / denied
-    }
-  }
-
-  function syncMediaSession(song: Song | undefined, playing: boolean) {
+  function syncMediaSession(song: Song | undefined, playing: boolean, videoId?: string | null) {
     if (!('mediaSession' in navigator) || !song) return
+    const artworkId = videoId ?? currentVideoIdRef.current
     navigator.mediaSession.metadata = new MediaMetadata({
       title: song.title,
       artist: song.artist,
-      album: 'Playlist da festa',
+      album: 'Fila da festa',
+      artwork: artworkId
+        ? [
+            { src: youtubeThumb(artworkId), sizes: '480x360', type: 'image/jpeg' },
+          ]
+        : undefined,
     })
     navigator.mediaSession.playbackState = playing ? 'playing' : 'paused'
   }
@@ -146,6 +180,7 @@ export function Play() {
 
     try {
       const videoId = await resolvePlayableVideoId(song)
+      currentVideoIdRef.current = videoId
       const upcoming = view.upcoming[0]
       if (upcoming) {
         void resolvePlayableVideoId(upcoming).catch(() => undefined)
@@ -178,12 +213,13 @@ export function Play() {
                 skipStreakRef.current = 0
                 setStatus('playing')
                 const now = buildPlayQueue(songsRef.current, playStateRef.current).current
-                syncMediaSession(now ?? undefined, true)
+                syncMediaSession(now ?? undefined, true, currentVideoIdRef.current)
                 void requestWakeLock()
               } else if (event.data === YT_PAUSED) {
                 setStatus('paused')
                 const now = buildPlayQueue(songsRef.current, playStateRef.current).current
-                syncMediaSession(now ?? undefined, false)
+                syncMediaSession(now ?? undefined, false, currentVideoIdRef.current)
+                void releaseWakeLock()
               }
             },
             onError: () => {
@@ -200,7 +236,7 @@ export function Play() {
         playerRef.current.cueVideoById(videoId)
       }
 
-      syncMediaSession(song, autoplay)
+      syncMediaSession(song, autoplay, videoId)
       if (!autoplay) setStatus('paused')
     } catch (err) {
       setStatus('error')
@@ -376,7 +412,31 @@ export function Play() {
     }
   }, [])
 
+  useEffect(() => {
+    function onVisibility() {
+      if (document.visibilityState !== 'visible') return
+      if (keepScreenOnRef.current && playerRef.current?.getPlayerState() === YT_PLAYING) {
+        void requestWakeLock()
+      }
+    }
+
+    document.addEventListener('visibilitychange', onVisibility)
+    return () => document.removeEventListener('visibilitychange', onVisibility)
+  }, [])
+
+  async function openCurrentOnYouTube() {
+    if (!current) return
+    const direct = extractYouTubeId(current.url)
+    const videoId = direct ?? currentVideoIdRef.current ?? (await resolvePlayableVideoId(current).catch(() => null))
+    if (!videoId) {
+      setError('Não achei essa faixa no YouTube pra abrir no app.')
+      return
+    }
+    window.open(`https://www.youtube.com/watch?v=${videoId}`, '_blank', 'noopener,noreferrer')
+  }
+
   const moderationList = sortSongsForModeration(songs)
+  const wakeLockSupported = typeof navigator !== 'undefined' && 'wakeLock' in navigator
 
   return (
     <section className="page play-page">
@@ -387,6 +447,14 @@ export function Play() {
           vai tocar muda de ordem. “Remover” apaga de vez.
         </p>
       </header>
+
+      <div className="panel playback-note">
+        <p>
+          Bloquear a tela e continuar o áudio (como no app com Premium) o YouTube <strong>não libera
+          neste site</strong> — só no app oficial. Aqui o jeito firme pra festa é manter a tela
+          ligada.
+        </p>
+      </div>
 
       <div className="panel player-panel">
         {!started ? (
@@ -443,41 +511,69 @@ export function Play() {
           ) : null}
 
           {started ? (
-            <div className="player-controls">
-              <button
-                className="btn btn-ghost"
-                type="button"
-                disabled={queueLength < 2}
-                onClick={() => {
-                  void advance(-1)
-                }}
-              >
-                Anterior
-              </button>
-              <button className="btn btn-primary" type="button" onClick={togglePlayPause}>
-                {status === 'playing' ? 'Pausar' : 'Tocar'}
-              </button>
-              <button
-                className="btn btn-ghost"
-                type="button"
-                disabled={queueLength < 2}
-                onClick={() => {
-                  void advance(1)
-                }}
-              >
-                Próxima
-              </button>
-              <button
-                className="btn btn-ghost btn-danger-ghost"
-                type="button"
-                disabled={!current || votingId === current.id}
-                onClick={() => {
-                  void skipCurrent()
-                }}
-              >
-                Tirar da festa
-              </button>
-            </div>
+            <>
+              <label className="keep-screen-toggle">
+                <input
+                  type="checkbox"
+                  checked={keepScreenOn}
+                  onChange={(event) => setKeepScreenOn(event.target.checked)}
+                />
+                <span>
+                  Manter tela ligada enquanto toca
+                  {!wakeLockSupported ? (
+                    <span className="field-hint">
+                      Este celular pode não sustentar isso — deixa o brilho baixo e a tela ligada.
+                    </span>
+                  ) : null}
+                </span>
+              </label>
+
+              <div className="player-controls">
+                <button
+                  className="btn btn-ghost"
+                  type="button"
+                  disabled={queueLength < 2}
+                  onClick={() => {
+                    void advance(-1)
+                  }}
+                >
+                  Anterior
+                </button>
+                <button className="btn btn-primary" type="button" onClick={togglePlayPause}>
+                  {status === 'playing' ? 'Pausar' : 'Tocar'}
+                </button>
+                <button
+                  className="btn btn-ghost"
+                  type="button"
+                  disabled={queueLength < 2}
+                  onClick={() => {
+                    void advance(1)
+                  }}
+                >
+                  Próxima
+                </button>
+                <button
+                  className="btn btn-ghost btn-danger-ghost"
+                  type="button"
+                  disabled={!current || votingId === current.id}
+                  onClick={() => {
+                    void skipCurrent()
+                  }}
+                >
+                  Tirar da festa
+                </button>
+                <button
+                  className="btn btn-ghost"
+                  type="button"
+                  disabled={!current}
+                  onClick={() => {
+                    void openCurrentOnYouTube()
+                  }}
+                >
+                  Abrir no YouTube
+                </button>
+              </div>
+            </>
           ) : null}
 
           {started && status === 'loading' ? <p className="muted">Preparando a música…</p> : null}
