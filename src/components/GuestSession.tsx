@@ -7,8 +7,15 @@ import {
   type FormEvent,
   type ReactNode,
 } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { PARTY_NAME } from '../lib/config'
-import { getRememberedGuestName, rememberGuestName } from '../lib/guestProfile'
+import {
+  getRememberedGuestName,
+  hasSeenWelcomeGuide,
+  markWelcomeGuideSeen,
+  rememberGuestName,
+} from '../lib/guestProfile'
+import { WelcomeGuide, type WelcomeGuideFinish } from './WelcomeGuide'
 
 type GuestSessionValue = {
   name: string
@@ -92,8 +99,10 @@ function NameGate({ onContinue }: { onContinue: (name: string) => void }) {
 }
 
 export function GuestSessionProvider({ children }: { children: ReactNode }) {
+  const navigate = useNavigate()
   const [name, setNameState] = useState(() => getRememberedGuestName())
   const [ready, setReady] = useState(() => Boolean(getRememberedGuestName()))
+  const [guideSeen, setGuideSeen] = useState(() => hasSeenWelcomeGuide())
 
   const setName = useCallback((next: string) => {
     setNameState(next)
@@ -109,6 +118,18 @@ export function GuestSessionProvider({ children }: { children: ReactNode }) {
     setReady(true)
   }, [])
 
+  const finishGuide = useCallback(
+    (result: WelcomeGuideFinish) => {
+      markWelcomeGuideSeen()
+      setGuideSeen(true)
+      enterWithName(result.name)
+      if (result.goToPhotos) {
+        navigate('/fotos')
+      }
+    },
+    [enterWithName, navigate],
+  )
+
   const value = useMemo<GuestSessionValue>(
     () => ({
       name,
@@ -118,9 +139,16 @@ export function GuestSessionProvider({ children }: { children: ReactNode }) {
     [name, ready, setName],
   )
 
+  let gate: ReactNode = null
+  if (!guideSeen) {
+    gate = <WelcomeGuide initialName={name} onFinish={finishGuide} />
+  } else if (!ready) {
+    gate = <NameGate onContinue={enterWithName} />
+  }
+
   return (
     <GuestSessionContext.Provider value={value}>
-      {ready ? children : <NameGate onContinue={enterWithName} />}
+      {gate ?? children}
     </GuestSessionContext.Provider>
   )
 }
