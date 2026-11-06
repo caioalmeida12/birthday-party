@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { downloadIcs, googleCalendarUrl } from '../lib/calendarLink'
 import { copy } from '../lib/copy'
+import { InviteArt } from './InviteArt'
 
 export type WelcomeGuideFinish = {
   name: string
@@ -103,6 +104,7 @@ export function WelcomeGuide({ initialName = '', onFinish }: Props) {
 
         {step === 0 ? (
           <div className="welcome-pane" key="invite">
+            <InviteArt className="invite-art invite-art-guide" />
             <h1 id="welcome-guide-title" className="welcome-guide-title">
               {copy.inviteTitle}
             </h1>

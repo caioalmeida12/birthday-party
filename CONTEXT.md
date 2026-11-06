@@ -21,3 +21,7 @@ Mensagem curta, fato primeiro. Fonte: `src/lib/copy.ts`. Sem onboarding de produ
 ## Operação
 
 Commit + push em `main` e deploy (`npm run build` + `npx gh-pages -d dist`) podem rodar sem pedir de novo, quando a tarefa estiver pronta (gates ok).
+
+## Arte do convite
+
+Coloque a imagem em `public/invite.jpg` (também aceita `.png` / `.webp`). Se não houver, cai no `public/invite.svg` padrão.

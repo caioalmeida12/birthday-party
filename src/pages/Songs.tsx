@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { useGuestNickname } from '../components/GuestSession'
 import { NicknameField } from '../components/NicknameField'
+import { SongThumb } from '../components/SongThumb'
 import { SongVoteControls } from '../components/SongVoteControls'
 import {
   castSongVote,
@@ -268,6 +269,7 @@ export function Songs() {
               <span className="queue-pos" aria-label={`Posição ${index + 1}`}>
                 {index + 1}
               </span>
+              <SongThumb song={song} />
               <div className="song-main">
                 <a href={song.url} target="_blank" rel="noreferrer">
                   {song.title}
