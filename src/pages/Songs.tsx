@@ -159,8 +159,8 @@ export function Songs() {
       <header className="page-header">
         <h1>Manda uma música</h1>
         <p>
-          Essa música vai tocar na festa, na caixa de som. Digita o nome ou cola o endereço do
-          Spotify / YouTube — a galera também pode dizer se gostou.
+          Sua música entra na fila da festa e toca na caixa de som. Digita o nome ou cola o
+          endereço do Spotify / YouTube — a galera vota e a ordem muda.
         </p>
       </header>
 
@@ -248,18 +248,31 @@ export function Songs() {
       ) : null}
 
       <div className="panel list-panel">
-        <h2>O que a galera mandou</h2>
+        <h2>Fila da festa</h2>
+        <p className="queue-lead">
+          Toca nessa ordem na caixa de som. Dá <strong>Gostei</strong> pra música subir.
+        </p>
         {loading ? <p className="muted">Carregando…</p> : null}
         {!loading && visibleSongs.length === 0 ? (
-          <p className="muted">Nenhuma música ainda — manda a primeira.</p>
+          <p className="muted">A fila tá vazia — manda a primeira música.</p>
         ) : null}
-        <ul className="song-list">
+        {!loading && visibleSongs.length > 0 ? (
+          <p className="queue-count" aria-live="polite">
+            {visibleSongs.length === 1
+              ? '1 música na fila'
+              : `${visibleSongs.length} músicas na fila`}
+          </p>
+        ) : null}
+        <ol className="song-list song-queue">
           {visibleSongs.map((song, index) => (
             <li
               key={song.id}
               className="song-item"
               style={{ animationDelay: `${index * 40}ms` }}
             >
+              <span className="queue-pos" aria-label={`Posição ${index + 1}`}>
+                {index + 1}
+              </span>
               <div className="song-main">
                 <a href={song.url} target="_blank" rel="noreferrer">
                   {song.title}
@@ -281,7 +294,7 @@ export function Songs() {
               />
             </li>
           ))}
-        </ul>
+        </ol>
       </div>
     </section>
   )
