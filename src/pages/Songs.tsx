@@ -10,8 +10,12 @@ import {
   subscribeToPlaylist,
   type Song,
 } from '../lib/songs'
+import { classifySongInput } from '../lib/songSuggestion'
 import { isSupabaseConfigured } from '../lib/supabase'
-import { isAllowedMusicUrl } from '../lib/urlValidation'
+import {
+  searchYouTubeSongs,
+  type SongSearchCandidate,
+} from '../lib/youtubeSearch'
 
 export function Songs() {
   const [songs, setSongs] = useState<Song[]>([])
@@ -21,7 +25,9 @@ export function Songs() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
-  const [url, setUrl] = useState('')
+  const [query, setQuery] = useState('')
+  const [candidates, setCandidates] = useState<SongSearchCandidate[]>([])
+  const [selectedVideoId, setSelectedVideoId] = useState<string | null>(null)
   const [submittedBy, setSubmittedBy, persistNickname] = useGuestNickname()
 
   async function refreshSongs() {
@@ -59,23 +65,72 @@ export function Songs() {
     }
   }, [])
 
+  function clearPick() {
+    setCandidates([])
+    setSelectedVideoId(null)
+  }
+
+  async function submitUrl(url: string) {
+    await createSong({ url, submittedBy })
+    await refreshSongs()
+    persistNickname()
+    setQuery('')
+    clearPick()
+    setSuccess('Pronto! Sua música entra na festa.')
+  }
+
   async function onSubmit(event: FormEvent) {
     event.preventDefault()
     setSuccess(null)
     setError(null)
 
-    if (!isAllowedMusicUrl(url)) {
-      setError('Cola um endereço do Spotify ou do YouTube.')
+    const classified = classifySongInput(query)
+    if (classified.kind === 'bad-url') {
+      setError('Se for endereço, usa Spotify ou YouTube. Ou digita só o nome da música.')
+      return
+    }
+
+    if (classified.kind === 'query' && !classified.query) {
+      setError('Digita o nome da música ou cola o endereço.')
       return
     }
 
     setSubmitting(true)
     try {
-      await createSong({ url, submittedBy })
-      await refreshSongs()
-      persistNickname()
-      setUrl('')
-      setSuccess('Pronto! Sua música entra na festa.')
+      if (classified.kind === 'music-url') {
+        await submitUrl(classified.url)
+        return
+      }
+
+      const found = await searchYouTubeSongs(classified.query, 3)
+      if (found.length === 0) {
+        setError('Não achei essa música. Tenta outro nome ou cola o endereço.')
+        clearPick()
+        return
+      }
+
+      setCandidates(found)
+      setSelectedVideoId(found[0].videoId)
+      setSuccess(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Não deu pra buscar a música.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function confirmSelected() {
+    const chosen = candidates.find((item) => item.videoId === selectedVideoId)
+    if (!chosen) {
+      setError('Escolhe uma das músicas achadas.')
+      return
+    }
+
+    setSubmitting(true)
+    setError(null)
+    setSuccess(null)
+    try {
+      await submitUrl(chosen.url)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não deu pra enviar a música.')
     } finally {
@@ -97,37 +152,100 @@ export function Songs() {
   }
 
   const visibleSongs = songs.filter((song) => !song.skipped)
+  const picking = candidates.length > 0
 
   return (
     <section className="page">
       <header className="page-header">
         <h1>Manda uma música</h1>
         <p>
-          Essa música vai tocar na festa, na caixa de som. Cola o endereço do Spotify ou do YouTube
-          e a galera também pode dizer se gostou.
+          Essa música vai tocar na festa, na caixa de som. Digita o nome ou cola o endereço do
+          Spotify / YouTube — a galera também pode dizer se gostou.
         </p>
       </header>
 
       <form className="panel form" onSubmit={onSubmit}>
         <label>
-          Cola aqui o endereço do Spotify ou YouTube
+          Nome da música ou endereço
           <input
             required
-            type="url"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            placeholder="cole aqui…"
+            type="text"
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value)
+              if (candidates.length > 0) clearPick()
+            }}
+            placeholder="ex.: Mas que nada — ou cola o link"
             autoComplete="off"
+            enterKeyHint="search"
           />
         </label>
-        <p className="field-hint">No celular: compartilhar → copiar link</p>
+        <p className="field-hint">Pode ser só o nome. Se preferir, cola o link do Spotify ou YouTube.</p>
         <NicknameField value={submittedBy} onChange={setSubmittedBy} />
         {error ? <p className="form-msg form-msg-error">{error}</p> : null}
         {success ? <p className="form-msg form-msg-ok">{success}</p> : null}
-        <button className="btn btn-primary" type="submit" disabled={submitting || !isSupabaseConfigured}>
-          {submitting ? 'Buscando a música…' : 'Enviar música'}
-        </button>
+
+        {!picking ? (
+          <button className="btn btn-primary" type="submit" disabled={submitting || !isSupabaseConfigured}>
+            {submitting ? 'Buscando…' : 'Buscar música'}
+          </button>
+        ) : null}
       </form>
+
+      {picking ? (
+        <div className="panel pick-panel">
+          <h2>É essa?</h2>
+          <p className="muted">Escolhe a que combina e manda pra festa.</p>
+          <ul className="pick-list">
+            {candidates.map((item) => {
+              const selected = item.videoId === selectedVideoId
+              return (
+                <li key={item.videoId}>
+                  <button
+                    type="button"
+                    className={`pick-option${selected ? ' pick-option-selected' : ''}`}
+                    onClick={() => setSelectedVideoId(item.videoId)}
+                    disabled={submitting}
+                  >
+                    {item.thumbnailUrl ? (
+                      <img src={item.thumbnailUrl} alt="" className="pick-thumb" />
+                    ) : (
+                      <span className="pick-thumb pick-thumb-empty" aria-hidden />
+                    )}
+                    <span className="pick-meta">
+                      <strong>{item.title}</strong>
+                      <span>{item.artist}</span>
+                    </span>
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+          <div className="pick-actions">
+            <button
+              className="btn btn-primary"
+              type="button"
+              disabled={submitting || !selectedVideoId || !isSupabaseConfigured}
+              onClick={() => {
+                void confirmSelected()
+              }}
+            >
+              {submitting ? 'Enviando…' : 'Mandar essa'}
+            </button>
+            <button
+              className="btn btn-ghost"
+              type="button"
+              disabled={submitting}
+              onClick={() => {
+                clearPick()
+                setError(null)
+              }}
+            >
+              Buscar de novo
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       <div className="panel list-panel">
         <h2>O que a galera mandou</h2>

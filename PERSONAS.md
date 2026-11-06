@@ -6,7 +6,7 @@ Amigo ou familiar no aniversário. Fala português. Usa o celular, mas não é �
 
 Precisa entender **pra quê** antes de agir: a música toca na festa; a foto precisa chegar **antes**, porque vai ser impressa e virar decoração no dia.
 
-Palavras que entende: música, foto, gostei, não rolou, enviar, cola aqui, sua vez, vai tocar na festa, manda antes, impressão, decoração.
+Palavras que entende: música, nome da música, foto, gostei, não rolou, enviar, cola aqui, é essa, sua vez, vai tocar na festa, manda antes, impressão, decoração.
 
 ## Anfitrião
 

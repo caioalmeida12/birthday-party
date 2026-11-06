@@ -1,7 +1,14 @@
 import { resolveMusicMetadata } from './resolveMusicMetadata'
+import {
+  sortSongsForBoard,
+  sortSongsForModeration,
+  sortSongsForQueue,
+} from './songOrder'
 import { requireSupabase } from './supabase'
 import { isAllowedMusicUrl, normalizeMusicUrl } from './urlValidation'
 import { getVoterKey } from './voter'
+
+export { sortSongsForBoard, sortSongsForModeration, sortSongsForQueue }
 
 export type Song = {
   id: string
@@ -79,32 +86,6 @@ function migrationHint(error: { code?: string; message: string }): Error | null 
     )
   }
   return null
-}
-
-export function sortSongsForQueue(songs: Song[]): Song[] {
-  return [...songs]
-    .filter((song) => !song.skipped)
-    .sort((a, b) => {
-      if (a.position !== b.position) return a.position - b.position
-      if (b.score !== a.score) return b.score - a.score
-      return a.created_at.localeCompare(b.created_at)
-    })
-}
-
-export function sortSongsForBoard(songs: Song[]): Song[] {
-  return [...songs].sort((a, b) => {
-    if (a.skipped !== b.skipped) return a.skipped ? 1 : -1
-    if (a.position !== b.position) return a.position - b.position
-    if (b.score !== a.score) return b.score - a.score
-    return a.created_at.localeCompare(b.created_at)
-  })
-}
-
-export function sortSongsForModeration(songs: Song[]): Song[] {
-  return [...songs].sort((a, b) => {
-    if (a.position !== b.position) return a.position - b.position
-    return a.created_at.localeCompare(b.created_at)
-  })
 }
 
 async function nextPosition(): Promise<number> {

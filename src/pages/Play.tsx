@@ -1,6 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { ModerateQueue } from '../components/ModerateQueue'
 import { SongVoteControls } from '../components/SongVoteControls'
+import {
+  advancePlayQueue,
+  buildPlayQueue,
+  markCurrentPlaying,
+  recoverPlayQueue,
+  startPlayQueue,
+  type PlayQueueState,
+} from '../lib/playQueue'
 import { resolvePlayableVideoId } from '../lib/resolvePlayable'
 import {
   castSongVote,
@@ -9,7 +17,6 @@ import {
   moveSong,
   skipSong,
   sortSongsForModeration,
-  sortSongsForQueue,
   subscribeToPlaylist,
   unskipSong,
   type Song,
@@ -27,9 +34,11 @@ type PlayerStatus = 'idle' | 'loading' | 'playing' | 'paused' | 'error'
 
 export function Play() {
   const [songs, setSongs] = useState<Song[]>([])
-  const [queue, setQueue] = useState<Song[]>([])
+  const [playState, setPlayState] = useState<PlayQueueState>({
+    playedIds: [],
+    currentId: null,
+  })
   const [loading, setLoading] = useState(isSupabaseConfigured)
-  const [index, setIndex] = useState(0)
   const [status, setStatus] = useState<PlayerStatus>('idle')
   const [error, setError] = useState<string | null>(null)
   const [started, setStarted] = useState(false)
@@ -37,48 +46,37 @@ export function Play() {
   const [moderationBusyId, setModerationBusyId] = useState<string | null>(null)
 
   const playerRef = useRef<YouTubePlayer | null>(null)
-  const indexRef = useRef(0)
-  const queueRef = useRef<Song[]>([])
-  const currentIdRef = useRef<string | null>(null)
+  const songsRef = useRef<Song[]>([])
+  const playStateRef = useRef<PlayQueueState>(playState)
   const wakeLockRef = useRef<WakeLockSentinel | null>(null)
   const advancingRef = useRef(false)
   const bootstrappedRef = useRef(false)
   const skipStreakRef = useRef(0)
 
   useEffect(() => {
-    indexRef.current = index
-  }, [index])
+    songsRef.current = songs
+  }, [songs])
 
   useEffect(() => {
-    queueRef.current = queue
-  }, [queue])
+    playStateRef.current = playState
+  }, [playState])
 
-  function applySongs(all: Song[], { preferSongId }: { preferSongId?: string | null } = {}) {
+  const queueView = buildPlayQueue(songs, playState)
+  const current = queueView.current
+  const queueLength = queueView.ordered.length
+
+  function applySongs(all: Song[], nextPlayState?: PlayQueueState) {
     setSongs(all)
-    const nextQueue = sortSongsForQueue(all)
-    setQueue(nextQueue)
-
-    const preferredId = preferSongId ?? currentIdRef.current
-    if (!preferredId || nextQueue.length === 0) {
-      setIndex(0)
-      currentIdRef.current = nextQueue[0]?.id ?? null
-      return nextQueue
-    }
-
-    const found = nextQueue.findIndex((song) => song.id === preferredId)
-    if (found >= 0) {
-      setIndex(found)
-      currentIdRef.current = preferredId
-    } else {
-      setIndex(0)
-      currentIdRef.current = nextQueue[0]?.id ?? null
-    }
-    return nextQueue
+    const base = nextPlayState ?? playStateRef.current
+    const recovered = recoverPlayQueue(all, base)
+    setPlayState(recovered)
+    playStateRef.current = recovered
+    return buildPlayQueue(all, recovered)
   }
 
-  async function refreshSongs(preferSongId?: string | null) {
+  async function refreshSongs() {
     const data = await listSongs()
-    return applySongs(data, { preferSongId })
+    return applySongs(data)
   }
 
   useEffect(() => {
@@ -89,7 +87,7 @@ export function Play() {
     void (async () => {
       try {
         const data = await listSongs()
-        if (!loadState.cancelled) applySongs(data)
+        if (!loadState.cancelled) applySongs(data, startPlayQueue(data))
       } catch (err) {
         if (!loadState.cancelled) {
           setError(err instanceof Error ? err.message : 'Não foi possível carregar a playlist.')
@@ -100,7 +98,7 @@ export function Play() {
     })()
 
     const unsubscribe = subscribeToPlaylist(() => {
-      void refreshSongs(currentIdRef.current).catch(() => undefined)
+      void refreshSongs().catch(() => undefined)
     })
 
     return () => {
@@ -138,21 +136,18 @@ export function Play() {
     navigator.mediaSession.playbackState = playing ? 'playing' : 'paused'
   }
 
-  async function playSongAt(nextIndex: number, { autoplay }: { autoplay: boolean }) {
-    const currentQueue = queueRef.current
-    if (currentQueue.length === 0) return
+  async function playCurrent({ autoplay }: { autoplay: boolean }) {
+    const view = buildPlayQueue(songsRef.current, playStateRef.current)
+    const song = view.current
+    if (!song) return
 
-    const safeIndex = ((nextIndex % currentQueue.length) + currentQueue.length) % currentQueue.length
-    const song = currentQueue[safeIndex]
-    setIndex(safeIndex)
-    currentIdRef.current = song.id
     setStatus('loading')
     setError(null)
 
     try {
       const videoId = await resolvePlayableVideoId(song)
-      const upcoming = currentQueue[(safeIndex + 1) % currentQueue.length]
-      if (upcoming && upcoming.id !== song.id) {
+      const upcoming = view.upcoming[0]
+      if (upcoming) {
         void resolvePlayableVideoId(upcoming).catch(() => undefined)
       }
 
@@ -182,11 +177,13 @@ export function Play() {
               } else if (event.data === YT_PLAYING) {
                 skipStreakRef.current = 0
                 setStatus('playing')
-                syncMediaSession(queueRef.current[indexRef.current], true)
+                const now = buildPlayQueue(songsRef.current, playStateRef.current).current
+                syncMediaSession(now ?? undefined, true)
                 void requestWakeLock()
               } else if (event.data === YT_PAUSED) {
                 setStatus('paused')
-                syncMediaSession(queueRef.current[indexRef.current], false)
+                const now = buildPlayQueue(songsRef.current, playStateRef.current).current
+                syncMediaSession(now ?? undefined, false)
               }
             },
             onError: () => {
@@ -216,11 +213,12 @@ export function Play() {
 
   async function advance(delta: number, options?: { fromFailure?: boolean }) {
     if (advancingRef.current) return
-    if (queueRef.current.length === 0) return
+    if (buildPlayQueue(songsRef.current, playStateRef.current).ordered.length === 0) return
 
     if (options?.fromFailure) {
       skipStreakRef.current += 1
-      if (skipStreakRef.current >= queueRef.current.length) {
+      const total = buildPlayQueue(songsRef.current, playStateRef.current).ordered.length
+      if (skipStreakRef.current >= total) {
         setStatus('error')
         setError('Não consegui tocar nenhuma faixa da fila.')
         return
@@ -229,18 +227,24 @@ export function Play() {
 
     advancingRef.current = true
     try {
-      await playSongAt(indexRef.current + delta, { autoplay: true })
+      const next = advancePlayQueue(songsRef.current, playStateRef.current, delta)
+      setPlayState(next)
+      playStateRef.current = next
+      await playCurrent({ autoplay: true })
     } finally {
       advancingRef.current = false
     }
   }
 
   useEffect(() => {
-    if (!started || bootstrappedRef.current || queue.length === 0) return
+    if (!started || bootstrappedRef.current || queueLength === 0) return
     bootstrappedRef.current = true
-    void playSongAt(0, { autoplay: true })
+    const startedState = startPlayQueue(songsRef.current)
+    setPlayState(startedState)
+    playStateRef.current = startedState
+    void playCurrent({ autoplay: true })
     void requestWakeLock()
-  }, [started, queue.length])
+  }, [started, queueLength])
 
   function togglePlayPause() {
     const player = playerRef.current
@@ -260,7 +264,7 @@ export function Play() {
     setError(null)
     try {
       const data = await castSongVote(songId, vote)
-      applySongs(data, { preferSongId: currentIdRef.current })
+      applySongs(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Falha ao votar.')
     } finally {
@@ -272,19 +276,17 @@ export function Play() {
     setVotingId(song.id)
     setError(null)
     try {
-      const wasCurrent = song.id === currentIdRef.current
+      const wasCurrent = song.id === playStateRef.current.currentId
       const data = song.skipped ? await unskipSong(song.id) : await skipSong(song.id)
-      const nextQueue = applySongs(data, {
-        preferSongId: wasCurrent && !song.skipped ? null : currentIdRef.current,
-      })
+      const view = applySongs(data)
 
       if (started && wasCurrent && !song.skipped) {
-        if (nextQueue.length === 0) {
+        if (!view.current) {
           setStatus('idle')
           setError('Fila vazia — todas as músicas foram tiradas da festa.')
           playerRef.current?.stopVideo()
         } else {
-          await playSongAt(0, { autoplay: true })
+          await playCurrent({ autoplay: true })
         }
       }
     } catch (err) {
@@ -295,7 +297,6 @@ export function Play() {
   }
 
   async function skipCurrent() {
-    const current = queueRef.current[indexRef.current]
     if (!current) return
     await handleSkipToggle(current)
   }
@@ -305,7 +306,7 @@ export function Play() {
     setError(null)
     try {
       const data = await moveSong(songId, direction)
-      applySongs(data, { preferSongId: currentIdRef.current })
+      applySongs(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não deu pra mudar a ordem.')
     } finally {
@@ -322,25 +323,32 @@ export function Play() {
     setModerationBusyId(song.id)
     setError(null)
     try {
-      const wasCurrent = song.id === currentIdRef.current
+      const wasCurrent = song.id === playStateRef.current.currentId
       const data = await deleteSong(song.id)
-      const nextQueue = applySongs(data, {
-        preferSongId: wasCurrent ? null : currentIdRef.current,
-      })
+      const view = applySongs(data)
 
       if (started && wasCurrent) {
-        if (nextQueue.length === 0) {
+        if (!view.current) {
           setStatus('idle')
           setError('Fila vazia — não sobrou música.')
           playerRef.current?.stopVideo()
         } else {
-          await playSongAt(0, { autoplay: true })
+          await playCurrent({ autoplay: true })
         }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não deu pra remover a música.')
     } finally {
       setModerationBusyId(null)
+    }
+  }
+
+  function jumpToSong(songId: string) {
+    const next = markCurrentPlaying(playStateRef.current, songId)
+    setPlayState(next)
+    playStateRef.current = next
+    if (started) {
+      void playCurrent({ autoplay: true })
     }
   }
 
@@ -368,7 +376,6 @@ export function Play() {
     }
   }, [])
 
-  const current = queue[index]
   const moderationList = sortSongsForModeration(songs)
 
   return (
@@ -376,8 +383,8 @@ export function Play() {
       <header className="page-header">
         <h1>Tocar na festa</h1>
         <p>
-          Liga o celular na caixa. Aqui você sobe, desce ou remove músicas ao vivo. “Tirar da festa”
-          só tira da rotação; “Remover” apaga de vez.
+          Liga o celular na caixa. A faixa atual não perde a vez se a galera votar — só o que ainda
+          vai tocar muda de ordem. “Remover” apaga de vez.
         </p>
       </header>
 
@@ -387,14 +394,14 @@ export function Play() {
             <p className="muted">
               {loading
                 ? 'Carregando a fila…'
-                : queue.length === 0
+                : queueLength === 0
                   ? 'Nada na fila — a galera ainda não mandou música (ou tudo foi tirado).'
-                  : `${queue.length} música(s) na fila.`}
+                  : `${queueLength} música(s) na fila.`}
             </p>
             <button
               className="btn btn-primary btn-lg"
               type="button"
-              disabled={!isSupabaseConfigured || loading || queue.length === 0}
+              disabled={!isSupabaseConfigured || loading || queueLength === 0}
               onClick={() => setStarted(true)}
             >
               Começar a tocar
@@ -414,6 +421,9 @@ export function Play() {
               <p className="song-artist">{current.artist}</p>
               {current.submitted_by ? (
                 <p className="song-by">sugerida por {current.submitted_by}</p>
+              ) : null}
+              {queueView.upcoming[0] ? (
+                <p className="muted">Em seguida: {queueView.upcoming[0].title}</p>
               ) : null}
               <SongVoteControls
                 song={current}
@@ -437,7 +447,7 @@ export function Play() {
               <button
                 className="btn btn-ghost"
                 type="button"
-                disabled={queue.length < 2}
+                disabled={queueLength < 2}
                 onClick={() => {
                   void advance(-1)
                 }}
@@ -450,7 +460,7 @@ export function Play() {
               <button
                 className="btn btn-ghost"
                 type="button"
-                disabled={queue.length < 2}
+                disabled={queueLength < 2}
                 onClick={() => {
                   void advance(1)
                 }}
@@ -475,10 +485,33 @@ export function Play() {
         </div>
       </div>
 
+      {started && queueView.upcoming.length > 0 ? (
+        <div className="panel list-panel">
+          <h2>Ainda vão tocar</h2>
+          <ol className="song-list play-queue">
+            {queueView.upcoming.map((song, index) => (
+              <li key={song.id} className="song-item">
+                <button
+                  type="button"
+                  className="queue-jump"
+                  onClick={() => jumpToSong(song.id)}
+                >
+                  <span className="queue-index">{index + 1}</span>
+                  <span>
+                    <strong>{song.title}</strong>
+                    <span className="song-artist">{song.artist}</span>
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ol>
+        </div>
+      ) : null}
+
       <div className="panel list-panel">
         <h2>Moderar fila</h2>
         <p className="muted moderate-help">
-          Subir / Descer muda a ordem na hora. Remover apaga a música pra sempre.
+          Subir / Descer muda a ordem do que ainda vai tocar. Remover apaga a música pra sempre.
         </p>
         {loading ? <p className="muted">Carregando…</p> : null}
         {!loading ? (
