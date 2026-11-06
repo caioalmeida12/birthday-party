@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { InviteArt } from '../components/InviteArt'
+import { PhotoMosaic } from '../components/PhotoMosaic'
 import { googleCalendarUrl } from '../lib/calendarLink'
 import { PARTY_NAME } from '../lib/config'
 import { copy } from '../lib/copy'
@@ -14,6 +15,7 @@ export function Home() {
   return (
     <section className="hero">
       <div className="hero-atmosphere" aria-hidden="true" />
+      <PhotoMosaic />
       <div className="hero-content">
         <InviteArt className="invite-art invite-art-home" />
         <p className="hero-kicker">{copy.homeKicker}</p>
