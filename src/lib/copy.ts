@@ -94,8 +94,11 @@ export const copy = {
   chatAnonymous: 'Alguém',
 
   hostTvTitle: 'Anfitrião',
+  hostTvViewPhotos: 'Fotos',
+  hostTvViewMusic: 'Fila',
   hostTvOpsOpen: 'Operação',
   hostTvOpsClose: 'Fechar operação',
+  hostAudioHint: 'Só o som — o clipe fica escondido.',
   hostQrTitle: 'Entra no site',
   hostQrHint: 'Escaneia com o celular',
   hostQrAlt: 'QR Code do site da festa',

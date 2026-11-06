@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { GuestQr } from '../components/GuestQr'
 import { HostGate } from '../components/HostGate'
-import { LivePhotoWall } from '../components/LivePhotoWall'
+import { LivePhotoStage } from '../components/LivePhotoStage'
 import { PartyChatWall } from '../components/PartyChatWall'
 import { PhotoModeration } from '../components/PhotoModeration'
 import { RsvpSummary } from '../components/RsvpSummary'
@@ -63,6 +63,7 @@ function AnfitriaoHost() {
   const [moderationBusyId, setModerationBusyId] = useState<string | null>(null)
   const [opsOpen, setOpsOpen] = useState(false)
   const [moreOpen, setMoreOpen] = useState(false)
+  const [tvView, setTvView] = useState<'photos' | 'music'>('photos')
 
   const playerRef = useRef<YouTubePlayer | null>(null)
   const songsRef = useRef<Song[]>([])
@@ -438,15 +439,209 @@ function AnfitriaoHost() {
   const wakeLockSupported = typeof navigator !== 'undefined' && 'wakeLock' in navigator
   const upcoming = queueView.upcoming
 
+  const transport = (
+    <div className="host-transport">
+      {!started ? (
+        <div className="player-start host-transport-start">
+          <p className="muted">
+            {loading
+              ? 'Carregando a fila…'
+              : queueLength === 0
+                ? 'Nada na fila ainda.'
+                : `${queueLength} na fila.`}
+          </p>
+          <button
+            className="btn btn-primary"
+            type="button"
+            disabled={!isSupabaseConfigured || loading || queueLength === 0}
+            onClick={() => setStarted(true)}
+          >
+            Começar a tocar
+          </button>
+        </div>
+      ) : null}
+
+      {started && current ? (
+        <div className="now-playing now-playing-strip">
+          <p className="now-playing-label">Agora</p>
+          <h2>{current.title}</h2>
+          <p className="song-artist">{current.artist}</p>
+        </div>
+      ) : null}
+
+      {started ? (
+        <>
+          <div className="player-controls host-transport-main">
+            <button
+              className="btn btn-ghost"
+              type="button"
+              disabled={queueLength < 2}
+              onClick={() => {
+                void advance(-1)
+              }}
+            >
+              Anterior
+            </button>
+            <button className="btn btn-primary" type="button" onClick={togglePlayPause}>
+              {status === 'playing' ? 'Pausar' : 'Tocar'}
+            </button>
+            <button
+              className="btn btn-ghost"
+              type="button"
+              disabled={queueLength < 2}
+              onClick={() => {
+                void advance(1)
+              }}
+            >
+              Próxima
+            </button>
+            <button
+              className="btn btn-ghost"
+              type="button"
+              aria-expanded={moreOpen}
+              onClick={() => setMoreOpen((open) => !open)}
+            >
+              {moreOpen ? copy.hostMoreClose : copy.hostMore}
+            </button>
+          </div>
+          {moreOpen ? (
+            <div className="host-more-panel">
+              <p className="muted host-audio-hint">{copy.hostAudioHint}</p>
+              <label className="keep-screen-toggle">
+                <input
+                  type="checkbox"
+                  checked={keepScreenOn}
+                  onChange={(event) => setKeepScreenOn(event.target.checked)}
+                />
+                <span>
+                  Manter tela ligada
+                  {!wakeLockSupported ? (
+                    <span className="field-hint">Neste aparelho pode não funcionar.</span>
+                  ) : null}
+                </span>
+              </label>
+              <button
+                className="btn btn-ghost btn-danger-ghost"
+                type="button"
+                disabled={!current || votingId === current.id}
+                onClick={() => {
+                  void skipCurrent()
+                }}
+              >
+                Tirar da festa
+              </button>
+              <button
+                className="btn btn-ghost"
+                type="button"
+                disabled={!current}
+                onClick={() => {
+                  void openCurrentOnYouTube()
+                }}
+              >
+                Abrir no YouTube
+              </button>
+            </div>
+          ) : null}
+        </>
+      ) : null}
+
+      {started && status === 'loading' ? <p className="muted">Preparando a música…</p> : null}
+      {error ? <p className="form-msg form-msg-error">{error}</p> : null}
+    </div>
+  )
+
+  const upcomingList = (
+    <div className="host-upcoming">
+      <h2>{copy.hostUpcomingTitle}</h2>
+      {started && upcoming.length > 0 ? (
+        <ol className="song-list play-queue host-upcoming-list">
+          {upcoming.map((song, index) => {
+            const busy = moderationBusyId === song.id
+            return (
+              <li key={song.id} className="song-item host-upcoming-item">
+                <button
+                  type="button"
+                  className="queue-jump"
+                  onClick={() => jumpToSong(song.id)}
+                >
+                  <span className="queue-index">{index + 1}</span>
+                  <span>
+                    <strong>{song.title}</strong>
+                    <span className="song-artist">{song.artist}</span>
+                  </span>
+                </button>
+                <div className="host-upcoming-actions">
+                  <button
+                    type="button"
+                    className="vote-btn"
+                    disabled={busy || index === 0}
+                    onClick={() => {
+                      void handleMove(song.id, 'up')
+                    }}
+                  >
+                    {copy.hostUpcomingUp}
+                  </button>
+                  <button
+                    type="button"
+                    className="vote-btn"
+                    disabled={busy || index === upcoming.length - 1}
+                    onClick={() => {
+                      void handleMove(song.id, 'down')
+                    }}
+                  >
+                    {copy.hostUpcomingDown}
+                  </button>
+                  <button
+                    type="button"
+                    className="vote-btn vote-btn-active-down"
+                    disabled={busy}
+                    onClick={() => {
+                      void handleRemove(song)
+                    }}
+                  >
+                    {copy.hostUpcomingRemove}
+                  </button>
+                </div>
+              </li>
+            )
+          })}
+        </ol>
+      ) : (
+        <p className="muted">{copy.hostUpcomingEmpty}</p>
+      )}
+    </div>
+  )
+
   return (
-    <section className="host-tv">
+    <section className={`host-tv host-tv-${tvView}`}>
+      {/* Player só áudio: mantém tamanho mínimo fora da vista. */}
+      <div className="host-audio-player" aria-hidden="true">
+        <div id="party-youtube-player" />
+      </div>
+
       <header className="host-tv-bar">
         <h1>{copy.hostTvTitle}</h1>
+        <div className="host-tv-view-toggle" role="group" aria-label="Vista da TV">
+          <button
+            type="button"
+            className={tvView === 'photos' ? 'btn btn-primary' : 'btn btn-ghost'}
+            onClick={() => setTvView('photos')}
+          >
+            {copy.hostTvViewPhotos}
+          </button>
+          <button
+            type="button"
+            className={tvView === 'music' ? 'btn btn-primary' : 'btn btn-ghost'}
+            onClick={() => setTvView('music')}
+          >
+            {copy.hostTvViewMusic}
+          </button>
+        </div>
         <div className="host-tv-bar-end">
           <div className="host-tv-qrs">
             <GuestQr
               path="camera"
-              size={88}
+              size={72}
               className="guest-qr-bar"
               title={copy.hostQrCameraTitle}
               hint={copy.hostQrCameraHint}
@@ -454,7 +649,7 @@ function AnfitriaoHost() {
             />
             <GuestQr
               path="musicas"
-              size={88}
+              size={72}
               className="guest-qr-bar"
               title={copy.hostQrMusicTitle}
               hint={copy.hostQrMusicHint}
@@ -471,189 +666,27 @@ function AnfitriaoHost() {
         </div>
       </header>
 
-      <div className="host-tv-grid">
-        <div className="host-tv-player panel player-panel">
-          {!started ? (
-            <div className="player-start">
-              <p className="muted">
-                {loading
-                  ? 'Carregando a fila…'
-                  : queueLength === 0
-                    ? 'Nada na fila — a galera ainda não mandou música (ou tudo foi tirado).'
-                    : `${queueLength} música(s) na fila.`}
-              </p>
-              <button
-                className="btn btn-primary btn-lg"
-                type="button"
-                disabled={!isSupabaseConfigured || loading || queueLength === 0}
-                onClick={() => setStarted(true)}
-              >
-                Começar a tocar
-              </button>
-            </div>
-          ) : null}
-
-          <div className={started ? 'player-stage' : 'player-stage player-stage-pending'}>
-            <div className="player-frame">
-              <div id="party-youtube-player" />
-            </div>
-
-            {started && current ? (
-              <div className="now-playing">
-                <p className="now-playing-label">Agora</p>
-                <h2>{current.title}</h2>
-                <p className="song-artist">{current.artist}</p>
-                {current.submitted_by ? (
-                  <p className="song-by">sugerida por {current.submitted_by}</p>
-                ) : null}
-              </div>
-            ) : null}
-
-            {started ? (
-              <div className="host-transport">
-                <div className="player-controls host-transport-main">
-                  <button
-                    className="btn btn-ghost"
-                    type="button"
-                    disabled={queueLength < 2}
-                    onClick={() => {
-                      void advance(-1)
-                    }}
-                  >
-                    Anterior
-                  </button>
-                  <button className="btn btn-primary" type="button" onClick={togglePlayPause}>
-                    {status === 'playing' ? 'Pausar' : 'Tocar'}
-                  </button>
-                  <button
-                    className="btn btn-ghost"
-                    type="button"
-                    disabled={queueLength < 2}
-                    onClick={() => {
-                      void advance(1)
-                    }}
-                  >
-                    Próxima
-                  </button>
-                  <button
-                    className="btn btn-ghost"
-                    type="button"
-                    aria-expanded={moreOpen}
-                    onClick={() => setMoreOpen((open) => !open)}
-                  >
-                    {moreOpen ? copy.hostMoreClose : copy.hostMore}
-                  </button>
-                </div>
-                {moreOpen ? (
-                  <div className="host-more-panel">
-                    <label className="keep-screen-toggle">
-                      <input
-                        type="checkbox"
-                        checked={keepScreenOn}
-                        onChange={(event) => setKeepScreenOn(event.target.checked)}
-                      />
-                      <span>
-                        Manter tela ligada
-                        {!wakeLockSupported ? (
-                          <span className="field-hint">Neste aparelho pode não funcionar.</span>
-                        ) : null}
-                      </span>
-                    </label>
-                    <button
-                      className="btn btn-ghost btn-danger-ghost"
-                      type="button"
-                      disabled={!current || votingId === current.id}
-                      onClick={() => {
-                        void skipCurrent()
-                      }}
-                    >
-                      Tirar da festa
-                    </button>
-                    <button
-                      className="btn btn-ghost"
-                      type="button"
-                      disabled={!current}
-                      onClick={() => {
-                        void openCurrentOnYouTube()
-                      }}
-                    >
-                      Abrir no YouTube
-                    </button>
-                  </div>
-                ) : null}
-              </div>
-            ) : null}
-
-            {started && status === 'loading' ? <p className="muted">Preparando a música…</p> : null}
-            {error ? <p className="form-msg form-msg-error">{error}</p> : null}
+      {tvView === 'photos' ? (
+        <div className="host-tv-grid host-tv-grid-photos">
+          <div className="host-tv-main-col">
+            <LivePhotoStage canModerate={opsOpen} />
+            <div className="host-audio-strip panel">{transport}</div>
           </div>
-
-          <div className="host-upcoming">
-            <h2>{copy.hostUpcomingTitle}</h2>
-            {started && upcoming.length > 0 ? (
-              <ol className="song-list play-queue host-upcoming-list">
-                {upcoming.map((song, index) => {
-                  const busy = moderationBusyId === song.id
-                  return (
-                    <li key={song.id} className="song-item host-upcoming-item">
-                      <button
-                        type="button"
-                        className="queue-jump"
-                        onClick={() => jumpToSong(song.id)}
-                      >
-                        <span className="queue-index">{index + 1}</span>
-                        <span>
-                          <strong>{song.title}</strong>
-                          <span className="song-artist">{song.artist}</span>
-                        </span>
-                      </button>
-                      <div className="host-upcoming-actions">
-                        <button
-                          type="button"
-                          className="vote-btn"
-                          disabled={busy || index === 0}
-                          onClick={() => {
-                            void handleMove(song.id, 'up')
-                          }}
-                        >
-                          {copy.hostUpcomingUp}
-                        </button>
-                        <button
-                          type="button"
-                          className="vote-btn"
-                          disabled={busy || index === upcoming.length - 1}
-                          onClick={() => {
-                            void handleMove(song.id, 'down')
-                          }}
-                        >
-                          {copy.hostUpcomingDown}
-                        </button>
-                        <button
-                          type="button"
-                          className="vote-btn vote-btn-active-down"
-                          disabled={busy}
-                          onClick={() => {
-                            void handleRemove(song)
-                          }}
-                        >
-                          {copy.hostUpcomingRemove}
-                        </button>
-                      </div>
-                    </li>
-                  )
-                })}
-              </ol>
-            ) : (
-              <p className="muted">{copy.hostUpcomingEmpty}</p>
-            )}
+          <div className="host-tv-side host-tv-side-chat-only">
+            <PartyChatWall canModerate={opsOpen} />
           </div>
         </div>
-
-        <div className="host-tv-side">
-          <PartyChatWall canModerate={opsOpen} />
-          <LivePhotoWall canModerate={opsOpen} />
+      ) : (
+        <div className="host-tv-grid host-tv-grid-music">
+          <div className="host-tv-player panel player-panel">
+            {transport}
+            {upcomingList}
+          </div>
+          <div className="host-tv-side host-tv-side-chat-only">
+            <PartyChatWall canModerate={opsOpen} />
+          </div>
         </div>
-      </div>
+      )}
 
       {opsOpen ? (
         <div className="host-tv-ops panel">
