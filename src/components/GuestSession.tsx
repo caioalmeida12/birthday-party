@@ -7,7 +7,7 @@ import {
   type FormEvent,
   type ReactNode,
 } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { copy } from '../lib/copy'
 import {
   getRememberedGuestName,
@@ -98,8 +98,18 @@ function NameGate({ onContinue }: { onContinue: (name: string) => void }) {
   )
 }
 
+function isHostPath(pathname: string): boolean {
+  return pathname === '/anfitriao' || pathname.endsWith('/anfitriao') || pathname.endsWith('/tocar')
+}
+
+function isHomePath(pathname: string): boolean {
+  return pathname === '/' || pathname === ''
+}
+
 export function GuestSessionProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate()
+  const location = useLocation()
+  const hostRoute = isHostPath(location.pathname)
   const [name, setNameState] = useState(() => getRememberedGuestName())
   const [ready, setReady] = useState(() => Boolean(getRememberedGuestName()))
   const [guideSeen, setGuideSeen] = useState(() => hasSeenWelcomeGuide())
@@ -130,11 +140,12 @@ export function GuestSessionProvider({ children }: { children: ReactNode }) {
       markWelcomeGuideSeen()
       setGuideSeen(true)
       enterWithName(result.name)
-      if (result.goToPhotos) {
+      // Deep link (QR câmera/música): fica na URL atual. Home + pediu foto → /fotos.
+      if (result.goToPhotos && isHomePath(location.pathname)) {
         navigate('/fotos')
       }
     },
-    [enterWithName, navigate],
+    [enterWithName, location.pathname, navigate],
   )
 
   const value = useMemo<GuestSessionValue>(
@@ -147,10 +158,12 @@ export function GuestSessionProvider({ children }: { children: ReactNode }) {
   )
 
   let gate: ReactNode = null
-  if (!guideSeen) {
-    gate = <WelcomeGuide initialName={name} onFinish={finishGuide} />
-  } else if (!ready) {
-    gate = <NameGate onContinue={enterWithName} />
+  if (!hostRoute) {
+    if (!guideSeen) {
+      gate = <WelcomeGuide initialName={name} onFinish={finishGuide} />
+    } else if (!ready) {
+      gate = <NameGate onContinue={enterWithName} />
+    }
   }
 
   return (

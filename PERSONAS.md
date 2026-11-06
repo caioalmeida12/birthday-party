@@ -9,6 +9,8 @@ Tom dos textos: mensagem curta, fato primeiro. Sem “você está convidado pra 
 Entende: foto, música, gostei, enviar, fila, impressão, decoração, conversa, foto pra TV.
 Não usa: playlist, player, skip, upvote, link (como jargão).
 
+QR da TV: foto → câmera direta; música → fila. Não quer cair numa home cheia de botões. Conversa só depois do guide-in (já se identificou).
+
 ## Anfitrião
 
 Caio. Notebook na TV + caixa. Entra em `/anfitriao` (senha). Quer ver a fila de longe, pular/reordenar sem abrir painéis, e mostrar conversa/fotos ao vivo. Controles da TV são só da festa (tocar/próxima); votos ficam no celular do convidado. Moderação de decoração e RSVP ficam em **Operação**.

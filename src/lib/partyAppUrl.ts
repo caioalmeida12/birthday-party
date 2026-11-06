@@ -1,8 +1,16 @@
-/** URL pública do web app (pra QR na TV). */
-export function partyAppUrl(): string {
+const FALLBACK_ORIGIN = 'https://caioalmeida12.github.io'
+
+function appRootHref(): string {
   const base = import.meta.env.BASE_URL || '/'
-  if (typeof window === 'undefined') {
-    return `https://caioalmeida12.github.io${base.startsWith('/') ? base : `/${base}`}`
-  }
-  return new URL(base, window.location.origin).href
+  const origin = typeof window !== 'undefined' ? window.location.origin : FALLBACK_ORIGIN
+  const root = new URL(base, origin)
+  return root.href.endsWith('/') ? root.href : `${root.href}/`
+}
+
+/** URL pública do web app (pra QR na TV). `path` relativo, ex.: `camera`, `musicas`. */
+export function partyAppUrl(path = ''): string {
+  const root = appRootHref()
+  const cleaned = path.replace(/^\//, '')
+  if (!cleaned) return root
+  return new URL(cleaned, root).href
 }

@@ -1,28 +1,25 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, Navigate, useSearchParams } from 'react-router-dom'
 import { useGuestNickname } from '../components/GuestSession'
 import { NicknameField } from '../components/NicknameField'
 import { MAX_PHOTO_BYTES } from '../lib/config'
 import { copy } from '../lib/copy'
 import { listPhotos, uploadPhoto, type Photo } from '../lib/photos'
-import type { PhotoKind } from '../lib/photoKind'
 import { isSupabaseConfigured } from '../lib/supabase'
 
 export function Photos() {
   const [searchParams] = useSearchParams()
+  const liveRedirect = searchParams.get('modo') === 'live'
   const [photos, setPhotos] = useState<Photo[]>([])
   const [loading, setLoading] = useState(isSupabaseConfigured)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [file, setFile] = useState<File | null>(null)
-  const [kind, setKind] = useState<PhotoKind>(() =>
-    searchParams.get('modo') === 'live' ? 'live' : 'decor',
-  )
   const [submittedBy, setSubmittedBy, persistNickname] = useGuestNickname()
 
   useEffect(() => {
-    if (!isSupabaseConfigured) return
+    if (!isSupabaseConfigured || liveRedirect) return
 
     let cancelled = false
 
@@ -42,7 +39,11 @@ export function Photos() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [liveRedirect])
+
+  if (liveRedirect) {
+    return <Navigate to="/camera" replace />
+  }
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault()
@@ -56,15 +57,12 @@ export function Photos() {
 
     setSubmitting(true)
     try {
-      await uploadPhoto({ file, submittedBy, kind })
+      await uploadPhoto({ file, submittedBy, kind: 'decor' })
       persistNickname()
       setFile(null)
-      setSuccess(kind === 'live' ? copy.photosOkLive : copy.photosOk)
+      setSuccess(copy.photosOk)
       const input = document.getElementById('photo-file') as HTMLInputElement | null
       if (input) input.value = ''
-      if (kind === 'decor') {
-        // Decoração aprovada só aparece depois; lista pública não muda agora.
-      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não deu pra enviar a foto.')
     } finally {
@@ -77,36 +75,14 @@ export function Photos() {
       <header className="page-header">
         <h1>{copy.photosTitle}</h1>
         <p>{copy.photosLead(Math.round(MAX_PHOTO_BYTES / (1024 * 1024)))}</p>
+        <p className="muted">
+          <Link to="/camera">{copy.photosModeLive}</Link>
+          {' — '}
+          {copy.photosModeLiveHint}
+        </p>
       </header>
 
       <form className="panel form" onSubmit={onSubmit}>
-        <fieldset className="photo-kind-fieldset">
-          <legend>Tipo</legend>
-          <label className="photo-kind-option">
-            <input
-              type="radio"
-              name="photo-kind"
-              checked={kind === 'decor'}
-              onChange={() => setKind('decor')}
-            />
-            <span>
-              <strong>{copy.photosModeDecor}</strong>
-              <span className="field-hint">{copy.photosModeDecorHint}</span>
-            </span>
-          </label>
-          <label className="photo-kind-option">
-            <input
-              type="radio"
-              name="photo-kind"
-              checked={kind === 'live'}
-              onChange={() => setKind('live')}
-            />
-            <span>
-              <strong>{copy.photosModeLive}</strong>
-              <span className="field-hint">{copy.photosModeLiveHint}</span>
-            </span>
-          </label>
-        </fieldset>
         <label>
           {copy.photosField}
           <input
@@ -114,7 +90,6 @@ export function Photos() {
             required
             type="file"
             accept="image/*"
-            capture={kind === 'live' ? 'environment' : undefined}
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
           />
         </label>

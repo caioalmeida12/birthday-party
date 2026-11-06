@@ -3,6 +3,7 @@ import { Layout } from './components/Layout'
 import { Anfitriao } from './pages/Anfitriao'
 import { Chat } from './pages/Chat'
 import { Home } from './pages/Home'
+import { LiveCamera } from './pages/LiveCamera'
 import { Photos } from './pages/Photos'
 import { Songs } from './pages/Songs'
 
@@ -14,6 +15,7 @@ export default function App() {
           <Route index element={<Home />} />
           <Route path="musicas" element={<Songs />} />
           <Route path="conversa" element={<Chat />} />
+          <Route path="camera" element={<LiveCamera />} />
           <Route path="fotos" element={<Photos />} />
           <Route path="anfitriao" element={<Anfitriao />} />
           <Route path="tocar" element={<Navigate to="/anfitriao" replace />} />

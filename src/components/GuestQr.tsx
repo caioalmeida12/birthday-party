@@ -4,15 +4,28 @@ import { copy } from '../lib/copy'
 import { partyAppUrl } from '../lib/partyAppUrl'
 
 type Props = {
+  /** Path relativo no app, ex.: `camera` ou `musicas`. Vazio = home. */
+  path?: string
+  title?: string
+  hint?: string
+  alt?: string
   /** Tamanho do QR em px (lado). */
   size?: number
   className?: string
   showLabel?: boolean
 }
 
-export function GuestQr({ size = 148, className = '', showLabel = true }: Props) {
+export function GuestQr({
+  path = '',
+  title = copy.hostQrTitle,
+  hint = copy.hostQrHint,
+  alt = copy.hostQrAlt,
+  size = 148,
+  className = '',
+  showLabel = true,
+}: Props) {
   const [src, setSrc] = useState<string | null>(null)
-  const [url] = useState(() => partyAppUrl())
+  const url = partyAppUrl(path)
 
   useEffect(() => {
     let cancelled = false
@@ -32,14 +45,14 @@ export function GuestQr({ size = 148, className = '', showLabel = true }: Props)
   return (
     <figure className={`guest-qr ${className}`.trim()}>
       {src ? (
-        <img src={src} width={size} height={size} alt={copy.hostQrAlt} />
+        <img src={src} width={size} height={size} alt={alt} />
       ) : (
         <div className="guest-qr-placeholder" style={{ width: size, height: size }} />
       )}
       {showLabel ? (
         <figcaption>
-          <strong>{copy.hostQrTitle}</strong>
-          <span>{copy.hostQrHint}</span>
+          <strong>{title}</strong>
+          <span>{hint}</span>
         </figcaption>
       ) : null}
     </figure>

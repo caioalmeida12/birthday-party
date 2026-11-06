@@ -81,7 +81,14 @@ export function LivePhotoWall({ canModerate = false }: Props) {
         <div className="host-live-empty">
           <p>{copy.hostLiveEmpty}</p>
           <p className="host-live-empty-hint">{copy.hostLiveEmptyHint}</p>
-          <GuestQr size={120} className="guest-qr-in-empty" />
+          <GuestQr
+            path="camera"
+            size={120}
+            className="guest-qr-in-empty"
+            title={copy.hostQrCameraTitle}
+            hint={copy.hostQrCameraHint}
+            alt={copy.hostQrCameraAlt}
+          />
         </div>
       ) : null}
       {error ? <p className="form-msg form-msg-error">{error}</p> : null}

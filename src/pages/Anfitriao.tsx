@@ -443,7 +443,24 @@ function AnfitriaoHost() {
       <header className="host-tv-bar">
         <h1>{copy.hostTvTitle}</h1>
         <div className="host-tv-bar-end">
-          <GuestQr size={96} className="guest-qr-bar" />
+          <div className="host-tv-qrs">
+            <GuestQr
+              path="camera"
+              size={88}
+              className="guest-qr-bar"
+              title={copy.hostQrCameraTitle}
+              hint={copy.hostQrCameraHint}
+              alt={copy.hostQrCameraAlt}
+            />
+            <GuestQr
+              path="musicas"
+              size={88}
+              className="guest-qr-bar"
+              title={copy.hostQrMusicTitle}
+              hint={copy.hostQrMusicHint}
+              alt={copy.hostQrMusicAlt}
+            />
+          </div>
           <button
             type="button"
             className="btn btn-ghost"
