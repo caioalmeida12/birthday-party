@@ -1415,6 +1415,54 @@ main {
   font-size: 1.1rem;
 }
 
+.host-tv-bar-end {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.guest-qr {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0;
+}
+
+.guest-qr img {
+  display: block;
+  border-radius: 0.55rem;
+  background: #f7e7c2;
+}
+
+.guest-qr-placeholder {
+  border-radius: 0.55rem;
+  background: color-mix(in srgb, #f7e7c2 35%, transparent);
+}
+
+.guest-qr figcaption {
+  display: grid;
+  gap: 0.1rem;
+  max-width: 9rem;
+}
+
+.guest-qr figcaption strong {
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.guest-qr figcaption span {
+  font-size: 0.85rem;
+  opacity: 0.75;
+}
+
+.guest-qr-bar figcaption strong {
+  font-size: 0.95rem;
+}
+
+.guest-qr-in-empty {
+  margin-top: 0.5rem;
+}
+
 .host-tv-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.95fr);

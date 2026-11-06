@@ -7,6 +7,7 @@ import {
   type Photo,
 } from '../lib/photos'
 import { isSupabaseConfigured } from '../lib/supabase'
+import { GuestQr } from './GuestQr'
 
 type Props = {
   canModerate?: boolean
@@ -80,6 +81,7 @@ export function LivePhotoWall({ canModerate = false }: Props) {
         <div className="host-live-empty">
           <p>{copy.hostLiveEmpty}</p>
           <p className="host-live-empty-hint">{copy.hostLiveEmptyHint}</p>
+          <GuestQr size={120} className="guest-qr-in-empty" />
         </div>
       ) : null}
       {error ? <p className="form-msg form-msg-error">{error}</p> : null}

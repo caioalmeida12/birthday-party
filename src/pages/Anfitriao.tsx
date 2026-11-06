@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { GuestQr } from '../components/GuestQr'
 import { HostGate } from '../components/HostGate'
 import { LivePhotoWall } from '../components/LivePhotoWall'
 import { PartyChatWall } from '../components/PartyChatWall'
@@ -441,13 +442,16 @@ function AnfitriaoHost() {
     <section className="host-tv">
       <header className="host-tv-bar">
         <h1>{copy.hostTvTitle}</h1>
-        <button
-          type="button"
-          className="btn btn-ghost"
-          onClick={() => setOpsOpen((open) => !open)}
-        >
-          {opsOpen ? copy.hostTvOpsClose : copy.hostTvOpsOpen}
-        </button>
+        <div className="host-tv-bar-end">
+          <GuestQr size={96} className="guest-qr-bar" />
+          <button
+            type="button"
+            className="btn btn-ghost"
+            onClick={() => setOpsOpen((open) => !open)}
+          >
+            {opsOpen ? copy.hostTvOpsClose : copy.hostTvOpsOpen}
+          </button>
+        </div>
       </header>
 
       <div className="host-tv-grid">
