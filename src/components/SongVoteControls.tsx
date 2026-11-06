@@ -10,9 +10,9 @@ type Props = {
 }
 
 function likedLabel(count: number): string {
-  if (count <= 0) return 'Ninguém gostou ainda'
-  if (count === 1) return '1 pessoa gostou'
-  return `${count} pessoas gostaram`
+  if (count <= 0) return '0 gostei'
+  if (count === 1) return '1 gostei'
+  return `${count} gostei`
 }
 
 export function SongVoteControls({

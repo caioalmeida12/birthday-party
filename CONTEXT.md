@@ -16,7 +16,7 @@ Site do aniversário para a galera participar pelo celular.
 
 ## Tom
 
-Português do Brasil, fala de festa — não de app. Evitar: link, playlist, player, skip, upvote, GitHub Pages.
+Mensagem curta, fato primeiro. Fonte: `src/lib/copy.ts`. Sem onboarding de produto, sem “cantinho”/“carinho”/“você está convidado pra celebrar”. Evitar jargão: playlist, player, skip, upvote.
 
 ## Operação
 

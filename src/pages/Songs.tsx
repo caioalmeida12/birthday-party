@@ -10,6 +10,7 @@ import {
   subscribeToPlaylist,
   type Song,
 } from '../lib/songs'
+import { copy } from '../lib/copy'
 import { classifySongInput } from '../lib/songSuggestion'
 import { isSupabaseConfigured } from '../lib/supabase'
 import {
@@ -76,7 +77,7 @@ export function Songs() {
     persistNickname()
     setQuery('')
     clearPick()
-    setSuccess('Pronto! Sua música entra na festa.')
+    setSuccess(copy.songsOk)
   }
 
   async function onSubmit(event: FormEvent) {
@@ -157,16 +158,13 @@ export function Songs() {
   return (
     <section className="page">
       <header className="page-header">
-        <h1>Manda uma música</h1>
-        <p>
-          Sua música entra na fila da festa e toca na caixa de som. Digita o nome ou cola o
-          endereço do Spotify / YouTube — a galera vota e a ordem muda.
-        </p>
+        <h1>{copy.songsTitle}</h1>
+        <p>{copy.songsLead}</p>
       </header>
 
       <form className="panel form" onSubmit={onSubmit}>
         <label>
-          Nome da música ou endereço
+          {copy.songsField}
           <input
             required
             type="text"
@@ -175,27 +173,26 @@ export function Songs() {
               setQuery(e.target.value)
               if (candidates.length > 0) clearPick()
             }}
-            placeholder="ex.: Mas que nada — ou cola o link"
+            placeholder={copy.songsFieldHint}
             autoComplete="off"
             enterKeyHint="search"
           />
         </label>
-        <p className="field-hint">Pode ser só o nome. Se preferir, cola o link do Spotify ou YouTube.</p>
         <NicknameField value={submittedBy} onChange={setSubmittedBy} />
         {error ? <p className="form-msg form-msg-error">{error}</p> : null}
         {success ? <p className="form-msg form-msg-ok">{success}</p> : null}
 
         {!picking ? (
           <button className="btn btn-primary" type="submit" disabled={submitting || !isSupabaseConfigured}>
-            {submitting ? 'Buscando…' : 'Buscar música'}
+            {submitting ? copy.songsSearching : copy.songsSearch}
           </button>
         ) : null}
       </form>
 
       {picking ? (
         <div className="panel pick-panel">
-          <h2>É essa?</h2>
-          <p className="muted">Escolhe a que combina e manda pra festa.</p>
+          <h2>{copy.songsPickTitle}</h2>
+          <p className="muted">{copy.songsPickLead}</p>
           <ul className="pick-list">
             {candidates.map((item) => {
               const selected = item.videoId === selectedVideoId
@@ -230,7 +227,7 @@ export function Songs() {
                 void confirmSelected()
               }}
             >
-              {submitting ? 'Enviando…' : 'Mandar essa'}
+              {submitting ? copy.songsPickConfirming : copy.songsPickConfirm}
             </button>
             <button
               className="btn btn-ghost"
@@ -241,26 +238,24 @@ export function Songs() {
                 setError(null)
               }}
             >
-              Buscar de novo
+              {copy.songsPickAgain}
             </button>
           </div>
         </div>
       ) : null}
 
       <div className="panel list-panel">
-        <h2>Fila da festa</h2>
-        <p className="queue-lead">
-          Toca nessa ordem na caixa de som. Dá <strong>Gostei</strong> pra música subir.
-        </p>
+        <h2>{copy.songsQueueTitle}</h2>
+        <p className="queue-lead">{copy.songsQueueLead}</p>
         {loading ? <p className="muted">Carregando…</p> : null}
         {!loading && visibleSongs.length === 0 ? (
-          <p className="muted">A fila tá vazia — manda a primeira música.</p>
+          <p className="muted">{copy.songsQueueEmpty}</p>
         ) : null}
         {!loading && visibleSongs.length > 0 ? (
           <p className="queue-count" aria-live="polite">
             {visibleSongs.length === 1
-              ? '1 música na fila'
-              : `${visibleSongs.length} músicas na fila`}
+              ? copy.songsQueueOne
+              : copy.songsQueueMany(visibleSongs.length)}
           </p>
         ) : null}
         <ol className="song-list song-queue">

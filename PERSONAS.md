@@ -2,12 +2,13 @@
 
 ## Convidado da festa
 
-Amigo ou familiar no aniversário. Fala português. Usa o celular, mas não é “de app”. Quer fazer duas coisas sem pensar: **mandar uma música** e **mandar uma foto**. Pode votar no que a galera sugeriu. Não configura Bluetooth, não “abre o player”, não entende “link”, “skip” ou “playlist”.
+Amigo ou familiar. Celular na mão. Quer enviar foto e música sem tutorial.
 
-Precisa entender **pra quê** antes de agir: na primeira visita o guide-in explica o convite (data/local), que a foto vai impressa na decoração e que a música toca na festa. A foto precisa chegar **antes** do dia.
+Tom dos textos: mensagem curta, fato primeiro. Sem “você está convidado pra celebrar”, “cantinho”, “com carinho”, onboarding de produto.
 
-Palavras que entende: música, nome da música, foto, gostei, não rolou, enviar, cola aqui, é essa, sua vez, vai tocar na festa, manda antes, impressão, decoração.
+Entende: foto, música, gostei, enviar, fila, impressão, decoração.
+Não usa: playlist, player, skip, upvote, link (como jargão).
 
 ## Anfitrião
 
-Quem organiza a festa (Caio). Liga o celular na caixa de som e controla o que toca. Precisa de **começar a tocar**, **próxima**, **subir/descer** na fila, **remover de vez**. Entra por `/tocar`; o convidado não vê esse atalho no menu.
+Caio. Liga o celular na caixa, sobe/desce, remove, próxima. Entra em `/tocar`.

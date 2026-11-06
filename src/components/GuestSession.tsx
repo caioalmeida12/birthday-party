@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { PARTY_NAME } from '../lib/config'
+import { copy } from '../lib/copy'
 import {
   getRememberedGuestName,
   hasSeenWelcomeGuide,
@@ -55,7 +55,7 @@ function NameGate({ onContinue }: { onContinue: (name: string) => void }) {
     event.preventDefault()
     const trimmed = draft.trim()
     if (!trimmed) {
-      setError('Conta pra gente como te chamam.')
+      setError(copy.nameError)
       return
     }
     onContinue(trimmed)
@@ -65,16 +65,14 @@ function NameGate({ onContinue }: { onContinue: (name: string) => void }) {
     <section className="name-gate" aria-labelledby="name-gate-title">
       <div className="name-gate-atmosphere" aria-hidden="true" />
       <div className="name-gate-card">
-        <p className="hero-kicker">Você está convidado</p>
+        <p className="hero-kicker">{copy.gateKicker}</p>
         <h1 id="name-gate-title" className="name-gate-title">
-          {PARTY_NAME}
+          {copy.gateTitle}
         </h1>
-        <p className="name-gate-copy">
-          Antes de mandar música ou foto, conta como a galera te chama na festa.
-        </p>
+        <p className="name-gate-copy">{copy.gateBody}</p>
         <form className="form name-gate-form" onSubmit={onSubmit}>
           <label>
-            Seu nome ou apelido
+            Nome ou apelido
             <input
               name="name"
               autoComplete="name"
@@ -85,12 +83,12 @@ function NameGate({ onContinue }: { onContinue: (name: string) => void }) {
                 setDraft(e.target.value)
                 if (error) setError(null)
               }}
-              placeholder="Ex.: Caio, Ju, Tio Zé"
+              placeholder={copy.namePlaceholder}
             />
           </label>
           {error ? <p className="form-msg form-msg-error">{error}</p> : null}
           <button className="btn btn-primary btn-lg" type="submit">
-            Entrar na festa
+            {copy.gateCta}
           </button>
         </form>
       </div>

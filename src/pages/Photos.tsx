@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { useGuestNickname } from '../components/GuestSession'
 import { NicknameField } from '../components/NicknameField'
 import { MAX_PHOTO_BYTES } from '../lib/config'
+import { copy } from '../lib/copy'
 import { listPhotos, uploadPhoto, type Photo } from '../lib/photos'
 import { isSupabaseConfigured } from '../lib/supabase'
 
@@ -45,7 +46,7 @@ export function Photos() {
     setError(null)
 
     if (!file) {
-      setError('Escolha uma imagem.')
+      setError('Escolhe um arquivo de imagem.')
       return
     }
 
@@ -55,7 +56,7 @@ export function Photos() {
       setPhotos((prev) => [photo, ...prev])
       persistNickname()
       setFile(null)
-      setSuccess('Foto recebida! Vai entrar na decoração.')
+      setSuccess(copy.photosOk)
       const input = document.getElementById('photo-file') as HTMLInputElement | null
       if (input) input.value = ''
     } catch (err) {
@@ -68,16 +69,13 @@ export function Photos() {
   return (
     <section className="page">
       <header className="page-header">
-        <h1>Manda uma foto</h1>
-        <p>
-          Manda antes do dia — eu imprimo pra decorar a festa. Até{' '}
-          {Math.round(MAX_PHOTO_BYTES / (1024 * 1024))} MB.
-        </p>
+        <h1>{copy.photosTitle}</h1>
+        <p>{copy.photosLead(Math.round(MAX_PHOTO_BYTES / (1024 * 1024)))}</p>
       </header>
 
       <form className="panel form" onSubmit={onSubmit}>
         <label>
-          Sua foto
+          {copy.photosField}
           <input
             id="photo-file"
             required
@@ -86,23 +84,19 @@ export function Photos() {
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
           />
         </label>
-        <NicknameField
-          value={submittedBy}
-          onChange={setSubmittedBy}
-          placeholder="Quem está na foto / quem enviou"
-        />
+        <NicknameField value={submittedBy} onChange={setSubmittedBy} placeholder="Seu nome" />
         {error ? <p className="form-msg form-msg-error">{error}</p> : null}
         {success ? <p className="form-msg form-msg-ok">{success}</p> : null}
         <button className="btn btn-primary" type="submit" disabled={submitting || !isSupabaseConfigured}>
-          {submitting ? 'Enviando…' : 'Enviar foto'}
+          {submitting ? copy.photosSubmitting : copy.photosSubmit}
         </button>
       </form>
 
       <div className="panel list-panel">
-        <h2>Já chegaram</h2>
+        <h2>{copy.photosListTitle}</h2>
         {loading ? <p className="muted">Carregando…</p> : null}
         {!loading && photos.length === 0 ? (
-          <p className="muted">Nenhuma foto ainda — manda a primeira.</p>
+          <p className="muted">{copy.photosEmpty}</p>
         ) : null}
         <div className="photo-grid">
           {photos.map((photo, index) => (

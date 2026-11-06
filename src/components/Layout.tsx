@@ -30,7 +30,6 @@ function Shell() {
       <main>
         <Outlet />
       </main>
-      <footer className="site-footer">Feito com carinho</footer>
     </div>
   )
 }

@@ -10,7 +10,7 @@ type Props = {
 export function NicknameField({
   value,
   onChange,
-  placeholder = 'Como te chamam na festa',
+  placeholder = 'Seu nome',
 }: Props) {
   const [remembered] = useState(() => getRememberedGuestName())
   const showingRemembered = Boolean(remembered) && value === remembered

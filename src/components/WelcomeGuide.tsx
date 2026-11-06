@@ -1,12 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { PARTY_NAME } from '../lib/config'
-import {
-  PARTY_DATE_LABEL,
-  PARTY_PLACE_FULL,
-  PARTY_PLACE_NAME,
-  PARTY_PLACE_REGION,
-  PARTY_WEEKDAY_LABEL,
-} from '../lib/partyDetails'
+import { copy } from '../lib/copy'
 
 export type WelcomeGuideFinish = {
   name: string
@@ -38,7 +31,7 @@ export function WelcomeGuide({ initialName = '', onFinish }: Props) {
   function finish(goToPhotos: boolean) {
     const trimmed = draft.trim()
     if (!trimmed) {
-      setError('Conta pra gente como te chamam.')
+      setError(copy.nameError)
       return
     }
     onFinish({ name: trimmed, goToPhotos })
@@ -53,7 +46,7 @@ export function WelcomeGuide({ initialName = '', onFinish }: Props) {
     <section className="welcome-guide" aria-labelledby="welcome-guide-title">
       <div className="welcome-guide-atmosphere" aria-hidden="true" />
       <div className="welcome-guide-card">
-        <p className="hero-kicker">Convite</p>
+        <p className="hero-kicker">{copy.inviteKicker}</p>
         <div className="welcome-steps" aria-hidden="true">
           {Array.from({ length: STEPS }, (_, index) => (
             <span
@@ -66,31 +59,23 @@ export function WelcomeGuide({ initialName = '', onFinish }: Props) {
         {step === 0 ? (
           <div className="welcome-pane" key="invite">
             <h1 id="welcome-guide-title" className="welcome-guide-title">
-              Aniversário do {PARTY_NAME}
+              {copy.inviteTitle}
             </h1>
-            <p className="welcome-guide-lead">
-              Você está convidado pra celebrar comigo.
-            </p>
             <dl className="welcome-facts">
               <div>
                 <dt>Quando</dt>
-                <dd>
-                  {PARTY_WEEKDAY_LABEL}, {PARTY_DATE_LABEL}
-                </dd>
+                <dd>{copy.inviteWhen}</dd>
               </div>
               <div>
                 <dt>Onde</dt>
                 <dd>
-                  {PARTY_PLACE_NAME}
-                  <span className="welcome-fact-sub">{PARTY_PLACE_REGION}</span>
+                  {copy.inviteWhere}
+                  <span className="welcome-fact-sub">{copy.inviteWhereSub}</span>
                 </dd>
               </div>
             </dl>
-            <p className="welcome-guide-copy">
-              Antes do dia, dá pra ajudar na festa por aqui — com uma foto e uma música.
-            </p>
             <button className="btn btn-primary btn-lg welcome-full" type="button" onClick={goNext}>
-              Continuar
+              {copy.inviteNext}
             </button>
           </div>
         ) : null}
@@ -98,31 +83,24 @@ export function WelcomeGuide({ initialName = '', onFinish }: Props) {
         {step === 1 ? (
           <div className="welcome-pane" key="purpose">
             <h1 id="welcome-guide-title" className="welcome-guide-title">
-              Pra que serve este cantinho
+              {copy.purposeTitle}
             </h1>
             <ul className="welcome-purposes">
               <li className="welcome-purpose welcome-purpose-photo">
-                <strong>Foto</strong>
-                <span>
-                  Manda uma imagem sua (ou de um momento bom). Eu imprimo e uso na{' '}
-                  <em>decoração</em> do {PARTY_PLACE_FULL} — vira parede da festa.
-                </span>
-                <span className="welcome-purpose-note">O importante é mandar antes do dia.</span>
+                <strong>{copy.purposePhotoTitle}</strong>
+                <span>{copy.purposePhotoBody}</span>
               </li>
               <li className="welcome-purpose">
-                <strong>Música</strong>
-                <span>
-                  Sugere o que você quer ouvir. Na festa toca na caixa de som, e a galera pode dizer
-                  se gostou.
-                </span>
+                <strong>{copy.purposeMusicTitle}</strong>
+                <span>{copy.purposeMusicBody}</span>
               </li>
             </ul>
             <div className="welcome-nav">
               <button className="btn btn-ghost" type="button" onClick={goBack}>
-                Voltar
+                {copy.purposeBack}
               </button>
               <button className="btn btn-primary" type="button" onClick={goNext}>
-                Quero mandar uma foto
+                {copy.purposeNext}
               </button>
             </div>
           </div>
@@ -131,18 +109,12 @@ export function WelcomeGuide({ initialName = '', onFinish }: Props) {
         {step === 2 ? (
           <div className="welcome-pane" key="photo">
             <h1 id="welcome-guide-title" className="welcome-guide-title">
-              Sua foto na festa
+              {copy.nameTitle}
             </h1>
-            <p className="welcome-guide-lead">
-              Escolhe uma imagem que você curta ver impressa. Ela entra na decoração do sítio —
-              não fica só na galeria do celular.
-            </p>
-            <p className="welcome-guide-copy">
-              Pode ser você, a família, um rolê antigo com a galera… o que tiver carinho.
-            </p>
+            <p className="welcome-guide-lead">{copy.nameHint}</p>
             <form className="form welcome-name-form" onSubmit={onSubmitName}>
               <label>
-                Seu nome ou apelido
+                Nome ou apelido
                 <input
                   name="name"
                   autoComplete="name"
@@ -153,23 +125,23 @@ export function WelcomeGuide({ initialName = '', onFinish }: Props) {
                     setDraft(event.target.value)
                     if (error) setError(null)
                   }}
-                  placeholder="Ex.: Caio, Ju, Tio Zé"
+                  placeholder={copy.namePlaceholder}
                 />
               </label>
               {error ? <p className="form-msg form-msg-error">{error}</p> : null}
               <button className="btn btn-primary btn-lg welcome-full" type="submit">
-                Mandar minha foto agora
+                {copy.namePhotoCta}
               </button>
               <button
                 className="btn btn-ghost welcome-full"
                 type="button"
                 onClick={() => finish(false)}
               >
-                Entrar e mandar depois
+                {copy.nameLaterCta}
               </button>
             </form>
             <button className="welcome-back-link" type="button" onClick={goBack}>
-              Voltar
+              {copy.nameBack}
             </button>
           </div>
         ) : null}

@@ -441,18 +441,15 @@ export function Play() {
   return (
     <section className="page play-page">
       <header className="page-header">
-        <h1>Tocar na festa</h1>
+        <h1>Tocar</h1>
         <p>
-          Liga o celular na caixa. A faixa atual não perde a vez se a galera votar — só o que ainda
-          vai tocar muda de ordem. “Remover” apaga de vez.
+          Celular na caixa. Voto só mexe no que ainda vai tocar. Remover apaga a música.
         </p>
       </header>
 
       <div className="panel playback-note">
         <p>
-          Bloquear a tela e continuar o áudio (como no app com Premium) o YouTube <strong>não libera
-          neste site</strong> — só no app oficial. Aqui o jeito firme pra festa é manter a tela
-          ligada.
+          Tela bloqueada não segue tocando aqui (só no app YouTube). Deixa a tela ligada.
         </p>
       </div>
 
@@ -519,11 +516,9 @@ export function Play() {
                   onChange={(event) => setKeepScreenOn(event.target.checked)}
                 />
                 <span>
-                  Manter tela ligada enquanto toca
+                  Manter tela ligada
                   {!wakeLockSupported ? (
-                    <span className="field-hint">
-                      Este celular pode não sustentar isso — deixa o brilho baixo e a tela ligada.
-                    </span>
+                    <span className="field-hint">Neste celular pode não funcionar.</span>
                   ) : null}
                 </span>
               </label>
@@ -583,7 +578,7 @@ export function Play() {
 
       {started && queueView.upcoming.length > 0 ? (
         <div className="panel list-panel">
-          <h2>Ainda vão tocar</h2>
+          <h2>Em seguida</h2>
           <ol className="song-list play-queue">
             {queueView.upcoming.map((song, index) => (
               <li key={song.id} className="song-item">
@@ -605,10 +600,8 @@ export function Play() {
       ) : null}
 
       <div className="panel list-panel">
-        <h2>Moderar fila</h2>
-        <p className="muted moderate-help">
-          Subir / Descer muda a ordem do que ainda vai tocar. Remover apaga a música pra sempre.
-        </p>
+        <h2>Ordem</h2>
+        <p className="muted moderate-help">Subir, descer ou remover.</p>
         {loading ? <p className="muted">Carregando…</p> : null}
         {!loading ? (
           <ModerateQueue
