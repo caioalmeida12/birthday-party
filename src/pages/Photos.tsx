@@ -4,6 +4,7 @@ import { NicknameField } from '../components/NicknameField'
 import { MAX_PHOTO_BYTES } from '../lib/config'
 import { copy } from '../lib/copy'
 import { listPhotos, uploadPhoto, type Photo } from '../lib/photos'
+import type { PhotoKind } from '../lib/photoKind'
 import { isSupabaseConfigured } from '../lib/supabase'
 
 export function Photos() {
@@ -13,6 +14,7 @@ export function Photos() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [file, setFile] = useState<File | null>(null)
+  const [kind, setKind] = useState<PhotoKind>('decor')
   const [submittedBy, setSubmittedBy, persistNickname] = useGuestNickname()
 
   useEffect(() => {
@@ -26,9 +28,7 @@ export function Photos() {
         if (!cancelled) setPhotos(data)
       } catch (err) {
         if (!cancelled) {
-          setError(
-            err instanceof Error ? err.message : 'Não foi possível carregar as fotos.',
-          )
+          setError(err instanceof Error ? err.message : 'Não foi possível carregar as fotos.')
         }
       } finally {
         if (!cancelled) setLoading(false)
@@ -52,13 +52,15 @@ export function Photos() {
 
     setSubmitting(true)
     try {
-      await uploadPhoto({ file, submittedBy })
-      // Não coloca na galeria: fica pendente até o anfitrião aprovar (convidado não vê isso).
+      await uploadPhoto({ file, submittedBy, kind })
       persistNickname()
       setFile(null)
-      setSuccess(copy.photosOk)
+      setSuccess(kind === 'live' ? copy.photosOkLive : copy.photosOk)
       const input = document.getElementById('photo-file') as HTMLInputElement | null
       if (input) input.value = ''
+      if (kind === 'decor') {
+        // Decoração aprovada só aparece depois; lista pública não muda agora.
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não deu pra enviar a foto.')
     } finally {
@@ -74,6 +76,33 @@ export function Photos() {
       </header>
 
       <form className="panel form" onSubmit={onSubmit}>
+        <fieldset className="photo-kind-fieldset">
+          <legend>Tipo</legend>
+          <label className="photo-kind-option">
+            <input
+              type="radio"
+              name="photo-kind"
+              checked={kind === 'decor'}
+              onChange={() => setKind('decor')}
+            />
+            <span>
+              <strong>{copy.photosModeDecor}</strong>
+              <span className="field-hint">{copy.photosModeDecorHint}</span>
+            </span>
+          </label>
+          <label className="photo-kind-option">
+            <input
+              type="radio"
+              name="photo-kind"
+              checked={kind === 'live'}
+              onChange={() => setKind('live')}
+            />
+            <span>
+              <strong>{copy.photosModeLive}</strong>
+              <span className="field-hint">{copy.photosModeLiveHint}</span>
+            </span>
+          </label>
+        </fieldset>
         <label>
           {copy.photosField}
           <input
@@ -81,6 +110,7 @@ export function Photos() {
             required
             type="file"
             accept="image/*"
+            capture={kind === 'live' ? 'environment' : undefined}
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
           />
         </label>
@@ -95,9 +125,7 @@ export function Photos() {
       <div className="panel list-panel">
         <h2>{copy.photosListTitle}</h2>
         {loading ? <p className="muted">Carregando…</p> : null}
-        {!loading && photos.length === 0 ? (
-          <p className="muted">{copy.photosEmpty}</p>
-        ) : null}
+        {!loading && photos.length === 0 ? <p className="muted">{copy.photosEmpty}</p> : null}
         <div className="photo-grid">
           {photos.map((photo, index) => (
             <figure

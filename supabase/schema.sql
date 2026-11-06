@@ -17,7 +17,16 @@ create table if not exists public.photos (
   storage_path text not null,
   submitted_by text,
   approved boolean not null default false,
+  kind text not null default 'decor' check (kind in ('decor', 'live')),
   created_at timestamptz not null default now()
+);
+
+create table if not exists public.party_messages (
+  id uuid primary key default gen_random_uuid(),
+  body text not null,
+  submitted_by text,
+  created_at timestamptz not null default now(),
+  hidden_at timestamptz
 );
 
 create table if not exists public.song_votes (
@@ -47,6 +56,7 @@ create table if not exists public.rsvps (
 
 alter table public.songs enable row level security;
 alter table public.photos enable row level security;
+alter table public.party_messages enable row level security;
 alter table public.song_votes enable row level security;
 alter table public.song_skips enable row level security;
 alter table public.rsvps enable row level security;
@@ -100,6 +110,25 @@ create policy "photos_delete_public"
   on public.photos for delete
   to anon, authenticated
   using (true);
+
+drop policy if exists "party_messages_select_public" on public.party_messages;
+create policy "party_messages_select_public"
+  on public.party_messages for select
+  to anon, authenticated
+  using (true);
+
+drop policy if exists "party_messages_insert_public" on public.party_messages;
+create policy "party_messages_insert_public"
+  on public.party_messages for insert
+  to anon, authenticated
+  with check (true);
+
+drop policy if exists "party_messages_update_public" on public.party_messages;
+create policy "party_messages_update_public"
+  on public.party_messages for update
+  to anon, authenticated
+  using (true)
+  with check (true);
 
 drop policy if exists "song_votes_select_public" on public.song_votes;
 create policy "song_votes_select_public"
@@ -191,6 +220,14 @@ begin
   end;
   begin
     alter publication supabase_realtime add table public.song_skips;
+  exception when duplicate_object then null;
+  end;
+  begin
+    alter publication supabase_realtime add table public.party_messages;
+  exception when duplicate_object then null;
+  end;
+  begin
+    alter publication supabase_realtime add table public.photos;
   exception when duplicate_object then null;
   end;
 end $$;

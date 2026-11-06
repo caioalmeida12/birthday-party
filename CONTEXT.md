@@ -1,27 +1,28 @@
 # Birthday Party — contexto
 
-Site do aniversário para a galera participar pelo celular.
+Site do aniversário para a galera participar pelo celular; notebook na TV é a central do anfitrião.
 
 ## Para que serve cada coisa
 
-- **Músicas:** o convidado manda sugestões pelo **nome** ou pelo endereço (Spotify/YouTube); na hora da festa elas tocam na caixa de som. Não é só uma lista — é a trilha da celebração.
-- **Fotos:** o convidado manda **antes** do dia. Entram pendentes; o anfitrião aprova em `/tocar` (convidado só vê “Recebida.”). Aprovadas vão pra galeria/impressão. Migration: `supabase/migration-photo-moderation.sql`.
+- **Músicas:** o convidado manda sugestões pelo **nome** ou pelo endereço (Spotify/YouTube); na hora da festa elas tocam na caixa de som.
+- **Fotos decoração:** o convidado manda **antes** do dia (`kind=decor`). Entram pendentes; o anfitrião aprova em `/anfitriao` → Operação. Aprovadas vão pra galeria/impressão/mosaico.
+- **Fotos ao vivo:** na festa (`kind=live`) aparecem na TV na hora; o anfitrião pode apagar. Migration: `supabase/migration-party-chat-live.sql` (+ `migration-photo-moderation.sql`).
+- **Conversa:** chat nativo (`party_messages`) no celular (`/conversa`); mural na TV. Anfitrião pode esconder mensagem.
 
 ## Quem faz o quê
 
-- **Convite:** 14/11/2026 (sábado), 19h, Sítio Jatobá (minha casa), Canindezinho. Guide-in: convite (+ salvar na agenda), foto/música, nome, foto, RSVP (sim/não + acompanhantes). Migration: `supabase/migration-rsvps.sql`. Resumo em `/tocar`.
-- **Convidado:** na entrada informa o nome/apelido (obrigatório uma vez neste celular); manda música, vota (gostei / não rolou), manda foto.
-- **Anfitrião:** `/tocar` pede senha (`VITE_HOST_PIN`, default `jatoba14`). Toca a fila, reordena, remove, aprova fotos, vê RSVP.
-- **Convite:** mapa (Google Maps), agenda, OG tags no `index.html`. Arte opcional em `public/invite.jpg`.
-- **Tela / fundo:** o embed do YouTube **não** continua com a tela bloqueada (Premium do app não vale no site). Em `/tocar`, o modo festa é **manter a tela ligada**; dá pra abrir a faixa no app YouTube se quiser fundo com Premium (aí a fila automática do site para).
+- **Convite:** 14/11/2026 (sábado), 19h, Sítio Jatobá (minha casa), Canindezinho. Guide-in + agenda + mapa + OG. RSVP: `supabase/migration-rsvps.sql`.
+- **Convidado:** nome uma vez; músicas; conversa; foto decoração ou ao vivo.
+- **Anfitrião:** `/anfitriao` (redirect de `/tocar`) com senha (`VITE_HOST_PIN`, default `jatoba14`). Tela cheia: player + chat + fotos live. Painel **Operação**: RSVP, moderação decor, ordem da fila.
+- **Tela / fundo:** embed YouTube não toca com tela bloqueada. Modo festa = manter tela ligada; dá pra abrir no app YouTube se quiser fundo com Premium.
 
 ## Tom
 
-Mensagem curta, fato primeiro. Fonte: `src/lib/copy.ts`. Sem onboarding de produto, sem “cantinho”/“carinho”/“você está convidado pra celebrar”. Evitar jargão: playlist, player, skip, upvote.
+Mensagem curta, fato primeiro. Fonte: `src/lib/copy.ts`. Sem onboarding de produto.
 
 ## Operação
 
-Commit + push em `main` e deploy (`npm run build` + `npx gh-pages -d dist`) podem rodar sem pedir de novo, quando a tarefa estiver pronta (gates ok).
+Commit + push em `main` e deploy (`npm run build` + `npx gh-pages -d dist`) podem rodar sem pedir de novo, quando a tarefa estiver pronta (gates ok). Rodar migrations SQL no Supabase (incl. Realtime em `party_messages` e `photos`).
 
 ## Arte do convite
 

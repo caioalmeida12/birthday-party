@@ -1,10 +1,23 @@
-import { Link, NavLink, Outlet } from 'react-router-dom'
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { PARTY_NAME } from '../lib/config'
 import { ConfigBanner } from './ConfigBanner'
 import { GuestSessionProvider, useGuestSession } from './GuestSession'
 
 function Shell() {
   const { name } = useGuestSession()
+  const location = useLocation()
+  const hostTv = location.pathname === '/anfitriao' || location.pathname.endsWith('/anfitriao')
+
+  if (hostTv) {
+    return (
+      <div className="app-shell app-shell-host-tv">
+        <ConfigBanner />
+        <main className="host-tv-main">
+          <Outlet />
+        </main>
+      </div>
+    )
+  }
 
   return (
     <div className="app-shell">
@@ -17,6 +30,9 @@ function Shell() {
           <nav className="site-nav" aria-label="Principal">
             <NavLink to="/musicas" className={({ isActive }) => (isActive ? 'active' : undefined)}>
               Músicas
+            </NavLink>
+            <NavLink to="/conversa" className={({ isActive }) => (isActive ? 'active' : undefined)}>
+              Conversa
             </NavLink>
             <NavLink to="/fotos" className={({ isActive }) => (isActive ? 'active' : undefined)}>
               Fotos

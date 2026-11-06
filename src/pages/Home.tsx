@@ -51,6 +51,10 @@ export function Home() {
             <span className="btn btn-ghost">{copy.homeMusicCta}</span>
             <span className="hero-action-hint">{copy.homeMusicHint}</span>
           </Link>
+          <Link className="hero-action" to="/conversa">
+            <span className="btn btn-ghost">{copy.homeChatCta}</span>
+            <span className="hero-action-hint">{copy.homeChatHint}</span>
+          </Link>
         </div>
       </div>
     </section>
