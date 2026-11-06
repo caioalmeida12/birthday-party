@@ -52,8 +52,8 @@ export function Photos() {
 
     setSubmitting(true)
     try {
-      const photo = await uploadPhoto({ file, submittedBy })
-      setPhotos((prev) => [photo, ...prev])
+      await uploadPhoto({ file, submittedBy })
+      // Não coloca na galeria: fica pendente até o anfitrião aprovar (convidado não vê isso).
       persistNickname()
       setFile(null)
       setSuccess(copy.photosOk)

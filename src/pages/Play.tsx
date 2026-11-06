@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { ModerateQueue } from '../components/ModerateQueue'
+import { PhotoModeration } from '../components/PhotoModeration'
 import { RsvpSummary } from '../components/RsvpSummary'
 import { SongVoteControls } from '../components/SongVoteControls'
 import {
@@ -455,6 +456,7 @@ export function Play() {
       </div>
 
       <RsvpSummary />
+      <PhotoModeration />
 
       <div className="panel player-panel">
         {!started ? (

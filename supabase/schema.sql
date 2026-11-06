@@ -16,6 +16,7 @@ create table if not exists public.photos (
   id uuid primary key default gen_random_uuid(),
   storage_path text not null,
   submitted_by text,
+  approved boolean not null default false,
   created_at timestamptz not null default now()
 );
 
@@ -86,6 +87,19 @@ create policy "photos_insert_public"
   on public.photos for insert
   to anon, authenticated
   with check (true);
+
+drop policy if exists "photos_update_public" on public.photos;
+create policy "photos_update_public"
+  on public.photos for update
+  to anon, authenticated
+  using (true)
+  with check (true);
+
+drop policy if exists "photos_delete_public" on public.photos;
+create policy "photos_delete_public"
+  on public.photos for delete
+  to anon, authenticated
+  using (true);
 
 drop policy if exists "song_votes_select_public" on public.song_votes;
 create policy "song_votes_select_public"

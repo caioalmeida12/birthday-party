@@ -6,12 +6,52 @@ export type Photo = {
   storage_path: string
   submitted_by: string | null
   created_at: string
+  approved: boolean
   publicUrl: string
 }
 
 export type PhotoInput = {
   file: File
   submittedBy?: string
+}
+
+type PhotoRow = {
+  id: string
+  storage_path: string
+  submitted_by: string | null
+  created_at: string
+  approved?: boolean | null
+}
+
+const PHOTO_SELECT = 'id, storage_path, submitted_by, created_at, approved'
+
+function mapPhoto(
+  row: PhotoRow,
+  publicUrl: string,
+): Photo {
+  return {
+    id: row.id,
+    storage_path: row.storage_path,
+    submitted_by: row.submitted_by,
+    created_at: row.created_at,
+    approved: row.approved !== false,
+    publicUrl,
+  }
+}
+
+function withPublicUrl(row: PhotoRow): Photo {
+  const client = requireSupabase()
+  const { data: urlData } = client.storage.from(PHOTO_BUCKET).getPublicUrl(row.storage_path)
+  return mapPhoto(row, urlData.publicUrl)
+}
+
+function migrationHint(error: { code?: string; message: string }): Error | null {
+  if (error.code === 'PGRST204' || /approved/.test(error.message)) {
+    return new Error(
+      'Falta rodar a migration no Supabase (supabase/migration-photo-moderation.sql).',
+    )
+  }
+  return null
 }
 
 function assertImageFile(file: File) {
@@ -58,21 +98,40 @@ function extensionFor(blob: Blob, originalName: string): string {
   return fromName || 'jpg'
 }
 
+/** Galeria pública: só aprovadas. */
 export async function listPhotos(): Promise<Photo[]> {
   const client = requireSupabase()
   const { data, error } = await client
     .from('photos')
-    .select('id, storage_path, submitted_by, created_at')
+    .select(PHOTO_SELECT)
+    .eq('approved', true)
     .order('created_at', { ascending: false })
 
-  if (error) throw error
+  if (error) {
+    const hinted = migrationHint(error)
+    if (hinted) throw hinted
+    throw error
+  }
 
-  return (data ?? []).map((row) => {
-    const { data: urlData } = client.storage
-      .from(PHOTO_BUCKET)
-      .getPublicUrl(row.storage_path)
-    return { ...row, publicUrl: urlData.publicUrl }
-  })
+  return ((data as PhotoRow[] | null) ?? []).map(withPublicUrl)
+}
+
+/** Fila do anfitrião: pendentes de revisão. */
+export async function listPendingPhotos(): Promise<Photo[]> {
+  const client = requireSupabase()
+  const { data, error } = await client
+    .from('photos')
+    .select(PHOTO_SELECT)
+    .eq('approved', false)
+    .order('created_at', { ascending: true })
+
+  if (error) {
+    const hinted = migrationHint(error)
+    if (hinted) throw hinted
+    throw error
+  }
+
+  return ((data as PhotoRow[] | null) ?? []).map(withPublicUrl)
 }
 
 export async function uploadPhoto(input: PhotoInput): Promise<Photo> {
@@ -101,15 +160,38 @@ export async function uploadPhoto(input: PhotoInput): Promise<Photo> {
     .insert({
       storage_path: path,
       submitted_by: submittedBy,
+      approved: false,
     })
-    .select('id, storage_path, submitted_by, created_at')
+    .select(PHOTO_SELECT)
     .single()
 
   if (error) {
     await client.storage.from(PHOTO_BUCKET).remove([path])
+    const hinted = migrationHint(error)
+    if (hinted) throw hinted
     throw error
   }
 
-  const { data: urlData } = client.storage.from(PHOTO_BUCKET).getPublicUrl(path)
-  return { ...data, publicUrl: urlData.publicUrl }
+  return withPublicUrl(data as PhotoRow)
+}
+
+export async function approvePhoto(photoId: string): Promise<void> {
+  const client = requireSupabase()
+  const { error } = await client.from('photos').update({ approved: true }).eq('id', photoId)
+  if (error) {
+    const hinted = migrationHint(error)
+    if (hinted) throw hinted
+    throw error
+  }
+}
+
+export async function rejectPhoto(photo: Photo): Promise<void> {
+  const client = requireSupabase()
+  const { error } = await client.from('photos').delete().eq('id', photo.id)
+  if (error) {
+    const hinted = migrationHint(error)
+    if (hinted) throw hinted
+    throw error
+  }
+  await client.storage.from(PHOTO_BUCKET).remove([photo.storage_path])
 }

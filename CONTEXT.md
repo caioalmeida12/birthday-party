@@ -5,7 +5,7 @@ Site do aniversário para a galera participar pelo celular.
 ## Para que serve cada coisa
 
 - **Músicas:** o convidado manda sugestões pelo **nome** ou pelo endereço (Spotify/YouTube); na hora da festa elas tocam na caixa de som. Não é só uma lista — é a trilha da celebração.
-- **Fotos:** o convidado manda **antes** do dia. O anfitrião imprime e usa como decoração na festa. Foto de última hora pode não entrar na parede.
+- **Fotos:** o convidado manda **antes** do dia. Entram pendentes; o anfitrião aprova em `/tocar` (convidado só vê “Recebida.”). Aprovadas vão pra galeria/impressão. Migration: `supabase/migration-photo-moderation.sql`.
 
 ## Quem faz o quê
 

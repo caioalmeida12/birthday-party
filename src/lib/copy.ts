@@ -102,4 +102,11 @@ export const copy = {
   photosOk: 'Recebida.',
   photosListTitle: 'Recebidas',
   photosEmpty: 'Nenhuma ainda.',
+
+  photoModTitle: 'Fotos pra revisar',
+  photoModLead: 'Só você vê. Aprovar publica na galeria; recusar apaga.',
+  photoModEmpty: 'Nada pendente.',
+  photoModAnonymous: 'Sem nome',
+  photoModApprove: 'Publicar',
+  photoModReject: 'Recusar',
 } as const
