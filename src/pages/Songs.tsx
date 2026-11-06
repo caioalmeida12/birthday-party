@@ -1,4 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
+import { NicknameField } from '../components/NicknameField'
+import { useGuestNickname } from '../lib/guestProfile'
 import { SongVoteControls } from '../components/SongVoteControls'
 import {
   castSongVote,
@@ -20,7 +22,7 @@ export function Songs() {
   const [success, setSuccess] = useState<string | null>(null)
 
   const [url, setUrl] = useState('')
-  const [submittedBy, setSubmittedBy] = useState('')
+  const [submittedBy, setSubmittedBy, persistNickname] = useGuestNickname()
 
   async function refreshSongs() {
     const data = await listSongs()
@@ -71,8 +73,8 @@ export function Songs() {
     try {
       await createSong({ url, submittedBy })
       await refreshSongs()
+      persistNickname()
       setUrl('')
-      setSubmittedBy('')
       setSuccess('Pronto! Sua música entra na festa.')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não deu pra enviar a música.')
@@ -119,15 +121,7 @@ export function Songs() {
           />
         </label>
         <p className="field-hint">No celular: compartilhar → copiar link</p>
-        <label>
-          Seu apelido (opcional)
-          <input
-            value={submittedBy}
-            onChange={(e) => setSubmittedBy(e.target.value)}
-            placeholder="Como te chamam na festa"
-            autoComplete="nickname"
-          />
-        </label>
+        <NicknameField value={submittedBy} onChange={setSubmittedBy} />
         {error ? <p className="form-msg form-msg-error">{error}</p> : null}
         {success ? <p className="form-msg form-msg-ok">{success}</p> : null}
         <button className="btn btn-primary" type="submit" disabled={submitting || !isSupabaseConfigured}>

@@ -1,4 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
+import { NicknameField } from '../components/NicknameField'
+import { useGuestNickname } from '../lib/guestProfile'
 import { MAX_PHOTO_BYTES } from '../lib/config'
 import { listPhotos, uploadPhoto, type Photo } from '../lib/photos'
 import { isSupabaseConfigured } from '../lib/supabase'
@@ -10,7 +12,7 @@ export function Photos() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [file, setFile] = useState<File | null>(null)
-  const [submittedBy, setSubmittedBy] = useState('')
+  const [submittedBy, setSubmittedBy, persistNickname] = useGuestNickname()
 
   useEffect(() => {
     if (!isSupabaseConfigured) return
@@ -51,8 +53,8 @@ export function Photos() {
     try {
       const photo = await uploadPhoto({ file, submittedBy })
       setPhotos((prev) => [photo, ...prev])
+      persistNickname()
       setFile(null)
-      setSubmittedBy('')
       setSuccess('Foto recebida! Vai entrar na decoração.')
       const input = document.getElementById('photo-file') as HTMLInputElement | null
       if (input) input.value = ''
@@ -84,15 +86,11 @@ export function Photos() {
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
           />
         </label>
-        <label>
-          Seu apelido (opcional)
-          <input
-            value={submittedBy}
-            onChange={(e) => setSubmittedBy(e.target.value)}
-            placeholder="Quem está na foto / quem enviou"
-            autoComplete="nickname"
-          />
-        </label>
+        <NicknameField
+          value={submittedBy}
+          onChange={setSubmittedBy}
+          placeholder="Quem está na foto / quem enviou"
+        />
         {error ? <p className="form-msg form-msg-error">{error}</p> : null}
         {success ? <p className="form-msg form-msg-ok">{success}</p> : null}
         <button className="btn btn-primary" type="submit" disabled={submitting || !isSupabaseConfigured}>
