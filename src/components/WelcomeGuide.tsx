@@ -75,10 +75,7 @@ export function WelcomeGuide({ initialName = '', onFinish }: Props) {
             <dl className="welcome-facts">
               <div>
                 <dt>Quando</dt>
-                <dd>
-                  {copy.inviteWhen}
-                  <span className="welcome-fact-sub">{copy.inviteWhenTime}</span>
-                </dd>
+                <dd>{copy.inviteWhen}</dd>
               </div>
               <div>
                 <dt>Onde</dt>

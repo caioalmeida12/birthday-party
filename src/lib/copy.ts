@@ -13,8 +13,7 @@ import {
 export const copy = {
   inviteKicker: 'Convite',
   inviteTitle: `Aniversário do ${PARTY_NAME}`,
-  inviteWhen: `${PARTY_WEEKDAY_LABEL}, ${PARTY_DATE_LABEL}`,
-  inviteWhenTime: PARTY_TIME_LABEL,
+  inviteWhen: `${PARTY_WEEKDAY_LABEL}, ${PARTY_DATE_LABEL} · ${PARTY_TIME_LABEL}`,
   inviteWhere: PARTY_PLACE_NAME,
   inviteWhereNote: PARTY_PLACE_NOTE,
   inviteWhereSub: PARTY_PLACE_REGION,
