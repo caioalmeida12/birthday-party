@@ -592,48 +592,55 @@ main {
   overflow: hidden;
 }
 
-.photo-mosaic-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
-  gap: 0.35rem;
-  width: 100%;
-  min-height: 100%;
-  transform: scale(1.08);
-  filter: saturate(0.85);
+.photo-mosaic-track {
+  display: flex;
+  height: 100%;
+  will-change: transform;
+  animation: mosaic-scroll 80s linear infinite;
 }
 
-@media (min-width: 720px) {
-  .photo-mosaic-grid {
-    grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
-    gap: 0.4rem;
-  }
+.photo-mosaic-strip {
+  display: flex;
+  flex-shrink: 0;
+  height: 100%;
+  gap: 4px;
+  padding-right: 4px;
+}
+
+.photo-mosaic-column {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  height: 100%;
 }
 
 .photo-mosaic-tile {
-  width: 100%;
-  aspect-ratio: 1;
-  object-fit: cover;
   display: block;
-  opacity: 0;
-  animation: mosaic-in 0.7s ease-out forwards;
+  object-fit: cover;
+  border-radius: 2px;
+  background: rgba(13, 31, 24, 0.5);
 }
 
 .photo-mosaic-veil {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(10, 24, 18, 0.42) 0%, rgba(13, 31, 24, 0.62) 50%, rgba(10, 24, 18, 0.82) 100%),
-    radial-gradient(ellipse 70% 50% at 50% 40%, rgba(13, 31, 24, 0.15), rgba(13, 31, 24, 0.55));
+    linear-gradient(180deg, rgba(10, 24, 18, 0.35) 0%, rgba(13, 31, 24, 0.5) 45%, rgba(10, 24, 18, 0.72) 100%),
+    radial-gradient(ellipse 65% 55% at 50% 45%, rgba(13, 31, 24, 0.1), rgba(13, 31, 24, 0.55));
 }
 
-@keyframes mosaic-in {
+@keyframes mosaic-scroll {
   from {
-    opacity: 0;
-    transform: scale(1.04);
+    transform: translate3d(0, 0, 0);
   }
   to {
-    opacity: 0.9;
-    transform: scale(1);
+    transform: translate3d(var(--mosaic-shift, -50%), 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .photo-mosaic-track {
+    animation: none;
   }
 }
 
