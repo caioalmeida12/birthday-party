@@ -3,7 +3,9 @@ import {
   PARTY_DATE_LABEL,
   PARTY_PLACE_FULL,
   PARTY_PLACE_NAME,
+  PARTY_PLACE_NOTE,
   PARTY_PLACE_REGION,
+  PARTY_TIME_LABEL,
   PARTY_WEEKDAY_LABEL,
 } from './partyDetails'
 
@@ -12,14 +14,16 @@ export const copy = {
   inviteKicker: 'Convite',
   inviteTitle: `Aniversário do ${PARTY_NAME}`,
   inviteWhen: `${PARTY_WEEKDAY_LABEL}, ${PARTY_DATE_LABEL}`,
+  inviteWhenTime: PARTY_TIME_LABEL,
   inviteWhere: PARTY_PLACE_NAME,
+  inviteWhereNote: PARTY_PLACE_NOTE,
   inviteWhereSub: PARTY_PLACE_REGION,
   invitePlaceFull: PARTY_PLACE_FULL,
   inviteNext: 'Continuar',
 
   purposeTitle: 'Duas coisas pra ajudar',
   purposePhotoTitle: 'Foto',
-  purposePhotoBody: `Eu imprimo e coloco na decoração do ${PARTY_PLACE_FULL}. Precisa chegar antes do dia 14.`,
+  purposePhotoBody: 'Eu imprimo e uso na decoração da festa. Manda antes do dia.',
   purposeMusicTitle: 'Música',
   purposeMusicBody: 'Entra na fila e toca na caixa na festa. Dá pra votar nas outras também.',
   purposeNext: 'Seguir',
@@ -33,7 +37,8 @@ export const copy = {
   nameBack: 'Voltar',
 
   photoAskTitle: 'Foto pra decoração',
-  photoAskBody: `Manda uma imagem pra eu imprimir e colocar na parede do ${PARTY_PLACE_NAME}. Não é foto de perfil — é decoração da festa.`,
+  photoAskBody:
+    'Manda uma imagem pra eu imprimir e colocar na festa. Não é foto de perfil — é decoração.',
   photoAskCta: 'Escolher foto',
   photoAskLater: 'Depois',
   photoAskBack: 'Voltar',
@@ -46,7 +51,7 @@ export const copy = {
   homeKicker: 'Convite',
   homeTagline: 'Foto pra imprimir na decoração. Música pra tocar na festa.',
   homePhotoCta: 'Enviar foto',
-  homePhotoHint: `Impressão pro ${PARTY_PLACE_NAME}. Antes do dia 14.`,
+  homePhotoHint: 'Impressão pra decoração. Antes do dia 14.',
   homeMusicCta: 'Enviar música',
   homeMusicHint: 'Toca na caixa no dia.',
 

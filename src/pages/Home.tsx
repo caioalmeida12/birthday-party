@@ -1,7 +1,12 @@
 import { Link } from 'react-router-dom'
 import { PARTY_NAME } from '../lib/config'
 import { copy } from '../lib/copy'
-import { PARTY_DATE_LABEL, PARTY_PLACE_FULL, PARTY_WEEKDAY_LABEL } from '../lib/partyDetails'
+import {
+  PARTY_DATE_LABEL,
+  PARTY_PLACE_FULL,
+  PARTY_TIME_LABEL,
+  PARTY_WEEKDAY_LABEL,
+} from '../lib/partyDetails'
 
 export function Home() {
   return (
@@ -11,7 +16,7 @@ export function Home() {
         <p className="hero-kicker">{copy.homeKicker}</p>
         <h1 className="hero-brand">{PARTY_NAME}</h1>
         <p className="hero-when">
-          {PARTY_WEEKDAY_LABEL}, {PARTY_DATE_LABEL}
+          {PARTY_WEEKDAY_LABEL}, {PARTY_DATE_LABEL} · {PARTY_TIME_LABEL}
           <span className="hero-where">{PARTY_PLACE_FULL}</span>
         </p>
         <p className="hero-tagline">{copy.homeTagline}</p>
