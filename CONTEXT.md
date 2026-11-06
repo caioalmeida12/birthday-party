@@ -15,3 +15,7 @@ Site do aniversário para a galera participar pelo celular.
 ## Tom
 
 Português do Brasil, fala de festa — não de app. Evitar: link, playlist, player, skip, upvote, GitHub Pages.
+
+## Operação
+
+Commit + push em `main` e deploy (`npm run build` + `npx gh-pages -d dist`) podem rodar sem pedir de novo, quando a tarefa estiver pronta (gates ok).
