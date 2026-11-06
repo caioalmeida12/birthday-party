@@ -13,7 +13,7 @@ Site do aniversário para a galera participar pelo celular; notebook na TV é a 
 
 - **Convite:** 14/11/2026 (sábado), 19h, Sítio Jatobá (minha casa), Canindezinho. Guide-in + agenda + mapa + OG. RSVP: `supabase/migration-rsvps.sql`.
 - **Convidado:** nome uma vez; músicas; conversa; foto decoração ou ao vivo.
-- **Anfitrião:** `/anfitriao` (senha `VITE_HOST_PIN`). Vista **Fotos** (mural grande em rotação + chat + áudio sem clipe) ou **Fila** (controles + ordem). QRs `/camera` e `/musicas`. **Operação**: RSVP + moderação decor.
+- **Anfitrião:** `/anfitriao` (senha `VITE_HOST_PIN`). Vista **Fotos** ou **Fila**. Um QR grande (canto inferior) → home do site. Áudio sem clipe. **Operação**: RSVP + moderação decor.
 - **Convidado (QR):** guide-in primeiro; depois cai na URL do QR (câmera ou músicas). Conversa só no menu depois de se identificar. Home enxuta: agenda, mapa, decoração, música.
 - **Tela / fundo:** embed YouTube não toca com tela bloqueada. Modo festa = manter tela ligada; dá pra abrir no app YouTube se quiser fundo com Premium.
 

@@ -7,7 +7,6 @@ import {
   type Photo,
 } from '../lib/photos'
 import { isSupabaseConfigured } from '../lib/supabase'
-import { GuestQr } from './GuestQr'
 
 const ROTATE_MS = 8000
 
@@ -87,13 +86,6 @@ export function LivePhotoStage({ canModerate = false }: Props) {
         <div className="host-live-empty host-photo-stage-empty-body">
           <p>{copy.hostLiveEmpty}</p>
           <p className="host-live-empty-hint">{copy.hostLiveEmptyHint}</p>
-          <GuestQr
-            path="camera"
-            size={140}
-            title={copy.hostQrCameraTitle}
-            hint={copy.hostQrCameraHint}
-            alt={copy.hostQrCameraAlt}
-          />
         </div>
       ) : null}
       {error ? <p className="form-msg form-msg-error host-photo-stage-msg">{error}</p> : null}

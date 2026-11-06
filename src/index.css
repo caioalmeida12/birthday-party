@@ -1428,10 +1428,36 @@ main {
   margin-left: auto;
 }
 
-.host-tv-qrs {
+.host-tv-qr-dock {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
+  justify-content: center;
+  padding: 0.85rem 1rem;
+}
+
+.guest-qr-dock {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
   gap: 0.75rem;
+}
+
+.guest-qr-dock figcaption {
+  max-width: none;
+}
+
+.guest-qr-dock figcaption strong {
+  font-size: 1.35rem;
+}
+
+.guest-qr-dock figcaption span {
+  font-size: 1.05rem;
+}
+
+.guest-qr-dock img {
+  width: 200px;
+  height: 200px;
 }
 
 /* YouTube fora da vista — só áudio. */
@@ -1560,8 +1586,17 @@ main {
   font-size: 0.85rem;
 }
 
-.host-tv-side-chat-only {
-  grid-template-rows: 1fr;
+.host-tv-side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.host-tv-side .host-chat-wall {
+  flex: 1 1 0;
+  min-height: 0;
 }
 
 .host-transport-start {
@@ -1733,17 +1768,6 @@ main {
   margin: 0;
 }
 
-.host-tv-side {
-  display: grid;
-  grid-template-rows: minmax(0, 1.35fr) minmax(0, 1fr);
-  gap: 0.75rem;
-  min-height: 0;
-  overflow: hidden;
-}
-
-.host-tv-side:has(.host-live-wall-empty) {
-  grid-template-rows: minmax(0, 1fr) auto;
-}
 
 /* Tipografia de conversa legível a distância (TV). */
 .host-tv .host-chat-wall .chat-who {

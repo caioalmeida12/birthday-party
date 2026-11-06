@@ -43,13 +43,17 @@ export function Home() {
           >
             <span className="btn btn-ghost">{copy.inviteMaps}</span>
           </a>
-          <Link className="hero-action" to="/fotos">
-            <span className="btn btn-primary">{copy.homePhotoCta}</span>
-            <span className="hero-action-hint">{copy.homePhotoHint}</span>
+          <Link className="hero-action" to="/camera">
+            <span className="btn btn-primary">{copy.hostQrCameraTitle}</span>
+            <span className="hero-action-hint">{copy.homeLivePhotoHint}</span>
           </Link>
           <Link className="hero-action" to="/musicas">
             <span className="btn btn-ghost">{copy.homeMusicCta}</span>
             <span className="hero-action-hint">{copy.homeMusicHint}</span>
+          </Link>
+          <Link className="hero-action" to="/fotos">
+            <span className="btn btn-ghost">{copy.homePhotoCta}</span>
+            <span className="hero-action-hint">{copy.homePhotoHint}</span>
           </Link>
         </div>
       </div>

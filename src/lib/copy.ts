@@ -72,6 +72,7 @@ export const copy = {
   homeCalendar: 'Salvar na agenda',
   homePhotoCta: 'Foto pra decoração',
   homePhotoHint: 'Impressão. Antes do dia 14.',
+  homeLivePhotoHint: 'Aparece no mural na festa.',
   homeMusicCta: 'Enviar música',
   homeMusicHint: 'Toca na caixa no dia.',
 
@@ -99,7 +100,7 @@ export const copy = {
   hostTvOpsOpen: 'Operação',
   hostTvOpsClose: 'Fechar operação',
   hostAudioHint: 'Só o som — o clipe fica escondido.',
-  hostQrTitle: 'Entra no site',
+  hostQrTitle: 'Participa',
   hostQrHint: 'Escaneia com o celular',
   hostQrAlt: 'QR Code do site da festa',
   hostQrCameraTitle: 'Foto pra TV',
@@ -120,7 +121,7 @@ export const copy = {
   hostChatHide: 'Esconder',
   hostLiveTitle: 'Fotos ao vivo',
   hostLiveEmpty: 'Nenhuma foto da festa ainda.',
-  hostLiveEmptyHint: 'Escaneia o QR “Foto pra TV”.',
+  hostLiveEmptyHint: 'Escaneia o QR embaixo pra mandar foto.',
   hostLiveRemove: 'Apagar',
 
   rsvpHostTitle: 'Quem vem',

@@ -638,24 +638,6 @@ function AnfitriaoHost() {
           </button>
         </div>
         <div className="host-tv-bar-end">
-          <div className="host-tv-qrs">
-            <GuestQr
-              path="camera"
-              size={72}
-              className="guest-qr-bar"
-              title={copy.hostQrCameraTitle}
-              hint={copy.hostQrCameraHint}
-              alt={copy.hostQrCameraAlt}
-            />
-            <GuestQr
-              path="musicas"
-              size={72}
-              className="guest-qr-bar"
-              title={copy.hostQrMusicTitle}
-              hint={copy.hostQrMusicHint}
-              alt={copy.hostQrMusicAlt}
-            />
-          </div>
           <button
             type="button"
             className="btn btn-ghost"
@@ -672,8 +654,11 @@ function AnfitriaoHost() {
             <LivePhotoStage canModerate={opsOpen} />
             <div className="host-audio-strip panel">{transport}</div>
           </div>
-          <div className="host-tv-side host-tv-side-chat-only">
+          <div className="host-tv-side">
             <PartyChatWall canModerate={opsOpen} />
+            <div className="host-tv-qr-dock panel">
+              <GuestQr size={200} className="guest-qr-dock" path="" />
+            </div>
           </div>
         </div>
       ) : (
@@ -682,8 +667,11 @@ function AnfitriaoHost() {
             {transport}
             {upcomingList}
           </div>
-          <div className="host-tv-side host-tv-side-chat-only">
+          <div className="host-tv-side">
             <PartyChatWall canModerate={opsOpen} />
+            <div className="host-tv-qr-dock panel">
+              <GuestQr size={200} className="guest-qr-dock" path="" />
+            </div>
           </div>
         </div>
       )}
