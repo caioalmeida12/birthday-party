@@ -26,10 +26,10 @@ export function Chat() {
   const [loading, setLoading] = useState(isSupabaseConfigured)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
   const [body, setBody] = useState('')
   const [submittedBy, setSubmittedBy, persistNickname] = useGuestNickname()
-  const listRef = useRef<HTMLUListElement | null>(null)
+  const listRef = useRef<HTMLDivElement | null>(null)
+  const inputRef = useRef<HTMLInputElement | null>(null)
 
   async function refresh() {
     const data = await listMessages()
@@ -73,14 +73,13 @@ export function Chat() {
   async function onSubmit(event: FormEvent) {
     event.preventDefault()
     setError(null)
-    setSuccess(null)
     setSubmitting(true)
     try {
       await postMessage({ body, submittedBy })
       persistNickname()
       setBody('')
-      setSuccess(copy.chatOk)
       await refresh()
+      inputRef.current?.focus()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não deu pra enviar.')
     } finally {
@@ -89,44 +88,55 @@ export function Chat() {
   }
 
   return (
-    <section className="page">
-      <header className="page-header">
+    <section className="page chat-page">
+      <header className="chat-page-header">
         <h1>{copy.chatTitle}</h1>
         <p>{copy.chatLead}</p>
       </header>
 
-      <form className="panel form" onSubmit={onSubmit}>
-        <label>
-          {copy.chatField}
-          <input
-            value={body}
-            onChange={(event) => setBody(event.target.value)}
-            placeholder={copy.chatPlaceholder}
-            maxLength={280}
-            autoComplete="off"
-          />
-        </label>
-        <NicknameField value={submittedBy} onChange={setSubmittedBy} />
-        {error ? <p className="form-msg form-msg-error">{error}</p> : null}
-        {success ? <p className="form-msg form-msg-ok">{success}</p> : null}
-        <button className="btn btn-primary" type="submit" disabled={submitting || !isSupabaseConfigured}>
-          {submitting ? copy.chatSubmitting : copy.chatSubmit}
-        </button>
-      </form>
-
-      <div className="panel list-panel">
-        {loading ? <p className="muted">Carregando…</p> : null}
-        {!loading && messages.length === 0 ? <p className="muted">{copy.chatEmpty}</p> : null}
-        <ul className="chat-list" ref={listRef}>
+      <div className="chat-thread panel" ref={listRef}>
+        {loading ? <p className="muted chat-thread-empty">Carregando…</p> : null}
+        {!loading && messages.length === 0 ? (
+          <p className="muted chat-thread-empty">{copy.chatEmpty}</p>
+        ) : null}
+        <ul className="chat-list chat-list-guest">
           {messages.map((message) => (
-            <li key={message.id} className="chat-item">
-              <span className="chat-who">{message.submitted_by || copy.chatAnonymous}</span>
-              <span className="chat-body">{message.body}</span>
-              <span className="chat-time">{formatTime(message.created_at)}</span>
+            <li key={message.id} className="chat-bubble">
+              <div className="chat-bubble-meta">
+                <span className="chat-who">{message.submitted_by || copy.chatAnonymous}</span>
+                <span className="chat-time">{formatTime(message.created_at)}</span>
+              </div>
+              <p className="chat-body">{message.body}</p>
             </li>
           ))}
         </ul>
       </div>
+
+      <form className="chat-composer panel" onSubmit={(event) => void onSubmit(event)}>
+        <NicknameField value={submittedBy} onChange={setSubmittedBy} />
+        <div className="chat-composer-row">
+          <label className="chat-composer-field">
+            <span className="sr-only">{copy.chatField}</span>
+            <input
+              ref={inputRef}
+              value={body}
+              onChange={(event) => setBody(event.target.value)}
+              placeholder={copy.chatPlaceholder}
+              maxLength={280}
+              autoComplete="off"
+              enterKeyHint="send"
+            />
+          </label>
+          <button
+            className="btn btn-primary"
+            type="submit"
+            disabled={submitting || !isSupabaseConfigured || !body.trim()}
+          >
+            {submitting ? copy.chatSubmitting : copy.chatSubmit}
+          </button>
+        </div>
+        {error ? <p className="form-msg form-msg-error">{error}</p> : null}
+      </form>
     </section>
   )
 }

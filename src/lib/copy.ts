@@ -92,12 +92,12 @@ export const copy = {
   cameraAlsoMusic: 'Quer mandar música também?',
 
   chatTitle: 'Conversa',
-  chatLead: 'Manda pro mural da TV. Sem spam.',
+  chatLead: 'Aparece no mural da TV.',
   chatField: 'Mensagem',
-  chatPlaceholder: 'Ex.: Cheguei',
+  chatPlaceholder: 'Escreve aqui…',
   chatSubmit: 'Enviar',
-  chatSubmitting: 'Enviando…',
-  chatEmpty: 'Nada ainda.',
+  chatSubmitting: '…',
+  chatEmpty: 'Nenhuma mensagem ainda. Manda a primeira.',
   chatOk: 'Enviada.',
   chatAnonymous: 'Alguém',
 
