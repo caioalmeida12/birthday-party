@@ -1,15 +1,16 @@
 export type GuestNavItem = {
   path: string
   label: string
-  emoji: string
+  /** Classe Font Awesome solid, ex.: `fa-music`. */
+  icon: string
   requiresReady?: boolean
 }
 
 /** Ordem do anel horizontal e da navbar: música → foto → conversa. */
 export const GUEST_NAV: GuestNavItem[] = [
-  { path: '/musicas', label: 'Músicas', emoji: '🎵' },
-  { path: '/fotos', label: 'Fotos', emoji: '📷' },
-  { path: '/conversa', label: 'Conversa', emoji: '💬', requiresReady: true },
+  { path: '/musicas', label: 'Músicas', icon: 'fa-music' },
+  { path: '/fotos', label: 'Fotos', icon: 'fa-camera' },
+  { path: '/conversa', label: 'Conversa', icon: 'fa-comments', requiresReady: true },
 ]
 
 export function guestNavItems(ready: boolean): GuestNavItem[] {

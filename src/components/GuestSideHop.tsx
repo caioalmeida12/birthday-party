@@ -24,9 +24,7 @@ function HopLink({
       aria-label={hint}
       title={hint}
     >
-      <span className="guest-hop-emoji" aria-hidden="true">
-        {item.emoji}
-      </span>
+      <i className={`fa-solid ${item.icon} guest-hop-icon`} aria-hidden="true" />
     </Link>
   )
 }

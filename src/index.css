@@ -693,9 +693,11 @@ a:hover {
   color: var(--amber);
 }
 
-.site-nav-emoji {
-  font-size: 1.15rem;
+.site-nav-icon {
+  font-size: 1rem;
   line-height: 1;
+  width: 1.1em;
+  text-align: center;
 }
 
 .guest-hop-rails {
@@ -736,8 +738,8 @@ a:hover {
   border-radius: 999px 0 0 999px;
 }
 
-.guest-hop-emoji {
-  font-size: 1.35rem;
+.guest-hop-icon {
+  font-size: 1.15rem;
   line-height: 1;
 }
 
@@ -764,8 +766,8 @@ a:hover {
     height: 4.2rem;
   }
 
-  .guest-hop-emoji {
-    font-size: 1.25rem;
+  .guest-hop-icon {
+    font-size: 1.05rem;
   }
 
   .app-shell-hopping main {

@@ -87,9 +87,7 @@ function Shell() {
                     className={({ isActive }) => (isActive ? 'active' : undefined)}
                     onClick={() => setMenuPath(null)}
                   >
-                    <span className="site-nav-emoji" aria-hidden="true">
-                      {item.emoji}
-                    </span>
+                    <i className={`fa-solid ${item.icon} site-nav-icon`} aria-hidden="true" />
                     <span>{item.label}</span>
                   </NavLink>
                 ))}
