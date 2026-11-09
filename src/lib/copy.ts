@@ -169,7 +169,7 @@ export const copy = {
   photosLead: (mb: number) =>
     `Pra decoração e mural da festa. Escolhe a imagem e eu mando na hora. Fica pendente até eu publicar. Até ${mb} MB.`,
   photosField: 'Arquivo',
-  photosCapture: 'Escolher e enviar',
+  photosCapture: 'Galeria ou câmera',
   photosSubmit: 'Enviar',
   photosSubmitting: 'Enviando…',
   photosOk: 'Recebida. Sai na festa depois da publicação.',

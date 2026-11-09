@@ -4,6 +4,7 @@ import { useGuestNickname } from '../components/GuestSession'
 import { NicknameField } from '../components/NicknameField'
 import { MAX_PHOTO_BYTES } from '../lib/config'
 import { copy } from '../lib/copy'
+import { guestPhotoFileInputAttrs } from '../lib/photoPicker'
 import { listPhotos, uploadPhoto, type Photo } from '../lib/photos'
 import { isSupabaseConfigured } from '../lib/supabase'
 
@@ -92,9 +93,7 @@ export function Photos() {
           ref={inputRef}
           id="photo-file"
           className="camera-file-input"
-          type="file"
-          accept="image/*"
-          capture="environment"
+          {...guestPhotoFileInputAttrs()}
           onChange={onPick}
           disabled={submitting || !isSupabaseConfigured}
         />

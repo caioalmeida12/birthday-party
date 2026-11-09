@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'r
 import { downloadIcs, googleCalendarUrl } from '../lib/calendarLink'
 import { copy } from '../lib/copy'
 import { partyMapsUrl } from '../lib/partyDetails'
+import { guestPhotoFileInputAttrs } from '../lib/photoPicker'
 import { plusOnesFromCompany } from '../lib/rsvpMath'
 import { InviteArt } from './InviteArt'
 import { PhotoMosaic } from './PhotoMosaic'
@@ -264,8 +265,7 @@ export function WelcomeGuide({ initialName = '', onFinish }: Props) {
             <input
               ref={photoInputRef}
               className="camera-file-input"
-              type="file"
-              accept="image/*"
+              {...guestPhotoFileInputAttrs()}
               onChange={onPickPhoto}
             />
             {photoPreview ? (

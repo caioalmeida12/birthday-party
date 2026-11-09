@@ -1,5 +1,6 @@
 import { MAX_PHOTO_BYTES, PHOTO_BUCKET } from './config'
 import { parsePhotoKind, type PhotoKind } from './photoKind'
+import { isLikelyImageFile } from './photoPicker'
 import { requireSupabase } from './supabase'
 
 export type Photo = {
@@ -58,17 +59,34 @@ function migrationHint(error: { code?: string; message: string }): Error | null 
 }
 
 function assertImageFile(file: File) {
-  if (!file.type.startsWith('image/')) {
+  if (!isLikelyImageFile(file)) {
     throw new Error('Envie apenas arquivos de imagem.')
   }
 }
 
+function isHeicLike(file: File): boolean {
+  return (
+    file.type === 'image/heic' ||
+    file.type === 'image/heif' ||
+    /\.hei[cf]$/i.test(file.name)
+  )
+}
+
 async function compressImage(file: File): Promise<Blob> {
-  if (file.size <= MAX_PHOTO_BYTES && file.type !== 'image/heic') {
+  if (file.size <= MAX_PHOTO_BYTES && !isHeicLike(file)) {
     return file
   }
 
-  const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' })
+  let bitmap: ImageBitmap
+  try {
+    bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' })
+  } catch {
+    if (file.size <= MAX_PHOTO_BYTES) return file
+    throw new Error(
+      'Não deu pra ler essa foto da galeria. Tenta JPG/PNG ou tira na hora.',
+    )
+  }
+
   const maxSide = 1920
   const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height))
   const width = Math.round(bitmap.width * scale)
