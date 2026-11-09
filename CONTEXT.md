@@ -11,7 +11,7 @@ Site do aniversário para a galera participar pelo celular; notebook na TV é a 
 ## Quem faz o quê
 
 - **Convite:** 14/11/2026 (sábado), 19h, Sítio Jatobá (minha casa), Canindezinho. Guide-in + agenda + mapa + OG. RSVP: `supabase/migration-rsvps.sql`.
-- **Guide-in:** convite → nome → foto (picker real ou depois) → RSVP. RSVP: sim/não; se sim, sozinho / levar alguém; quantidade só se levar alguém.
+- **Guide-in:** convite → nome → foto (escolher já confirma; ou depois) → RSVP. RSVP: sim/não; se sim, sozinho / levar alguém; quantidade só se levar alguém. Em `/fotos`, escolher a imagem já envia (sem segundo toque em Enviar).
 - **Convidado:** nome uma vez; músicas; conversa; foto.
 - **Anfitrião:** `/anfitriao` (senha `VITE_HOST_PIN`). Vista **Fotos** ou **Fila**. Um QR grande (canto inferior) → home do site. Áudio sem clipe. **Operação**: RSVP + moderação (pendentes e publicadas).
 - **Convidado (QR):** guide-in primeiro; depois cai na URL do QR (foto ou músicas). Conversa só no menu depois de se identificar. Home enxuta: agenda, mapa, foto, música.

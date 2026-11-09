@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { useGuestNickname } from '../components/GuestSession'
 import { NicknameField } from '../components/NicknameField'
@@ -14,9 +14,9 @@ export function Photos() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
-  const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [submittedBy, setSubmittedBy, persistNickname] = useGuestNickname()
+  const previewRef = useRef<string | null>(null)
 
   useEffect(() => {
     if (!isSupabaseConfigured) return
@@ -43,36 +43,26 @@ export function Photos() {
 
   useEffect(() => {
     return () => {
-      if (preview) URL.revokeObjectURL(preview)
+      if (previewRef.current) URL.revokeObjectURL(previewRef.current)
     }
-  }, [preview])
+  }, [])
 
-  function onPick(event: ChangeEvent<HTMLInputElement>) {
-    const next = event.target.files?.[0] ?? null
-    setError(null)
-    setSuccess(null)
-    if (preview) URL.revokeObjectURL(preview)
-    setFile(next)
-    setPreview(next ? URL.createObjectURL(next) : null)
+  function replacePreview(nextUrl: string | null) {
+    if (previewRef.current) URL.revokeObjectURL(previewRef.current)
+    previewRef.current = nextUrl
+    setPreview(nextUrl)
   }
 
-  async function onSubmit(event: FormEvent) {
-    event.preventDefault()
-    setSuccess(null)
-    setError(null)
-
-    if (!file) {
-      setError(copy.cameraNeedPhoto)
-      return
-    }
-
+  async function uploadSelected(file: File) {
     setSubmitting(true)
+    setError(null)
+    setSuccess(null)
+    replacePreview(URL.createObjectURL(file))
+
     try {
       await uploadPhoto({ file, submittedBy, kind: 'decor' })
       persistNickname()
-      setFile(null)
-      if (preview) URL.revokeObjectURL(preview)
-      setPreview(null)
+      replacePreview(null)
       setSuccess(copy.photosOk)
       if (inputRef.current) inputRef.current.value = ''
       const data = await listPhotos()
@@ -84,6 +74,12 @@ export function Photos() {
     }
   }
 
+  function onPick(event: ChangeEvent<HTMLInputElement>) {
+    const next = event.target.files?.[0] ?? null
+    if (!next) return
+    void uploadSelected(next)
+  }
+
   return (
     <section className="page">
       <header className="page-header">
@@ -91,7 +87,7 @@ export function Photos() {
         <p>{copy.photosLead(Math.round(MAX_PHOTO_BYTES / (1024 * 1024)))}</p>
       </header>
 
-      <form className="panel form" onSubmit={onSubmit}>
+      <div className="panel form">
         <input
           ref={inputRef}
           id="photo-file"
@@ -100,45 +96,39 @@ export function Photos() {
           accept="image/*"
           capture="environment"
           onChange={onPick}
+          disabled={submitting || !isSupabaseConfigured}
         />
 
         {preview ? (
           <div className="camera-preview">
             <img src={preview} alt="" />
           </div>
-        ) : (
+        ) : null}
+
+        <button
+          className="btn btn-primary btn-lg welcome-full"
+          type="button"
+          disabled={submitting || !isSupabaseConfigured}
+          onClick={() => inputRef.current?.click()}
+        >
+          {submitting ? copy.photosSubmitting : copy.photosCapture}
+        </button>
+
+        {preview && error ? (
           <button
-            className="btn btn-primary btn-lg welcome-full"
+            className="btn btn-ghost welcome-full"
             type="button"
+            disabled={submitting}
             onClick={() => inputRef.current?.click()}
           >
-            {copy.photosCapture}
+            {copy.cameraRetake}
           </button>
-        )}
-
-        {preview ? (
-          <div className="camera-actions">
-            <button
-              className="btn btn-ghost"
-              type="button"
-              onClick={() => inputRef.current?.click()}
-            >
-              {copy.cameraRetake}
-            </button>
-            <button
-              className="btn btn-primary"
-              type="submit"
-              disabled={submitting || !isSupabaseConfigured}
-            >
-              {submitting ? copy.photosSubmitting : copy.photosSubmit}
-            </button>
-          </div>
         ) : null}
 
         <NicknameField value={submittedBy} onChange={setSubmittedBy} placeholder="Seu nome" />
         {error ? <p className="form-msg form-msg-error">{error}</p> : null}
         {success ? <p className="form-msg form-msg-ok">{success}</p> : null}
-      </form>
+      </div>
 
       <div className="panel list-panel">
         <h2>{copy.photosListTitle}</h2>

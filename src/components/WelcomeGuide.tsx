@@ -70,10 +70,16 @@ export function WelcomeGuide({ initialName = '', onFinish }: Props) {
   function onPickPhoto(event: ChangeEvent<HTMLInputElement>) {
     const next = event.target.files?.[0] ?? null
     if (!next) return
+    if (!requireName()) {
+      setStep(1)
+      return
+    }
     if (photoPreview) URL.revokeObjectURL(photoPreview)
     setPhotoFile(next)
     setPhotoPreview(URL.createObjectURL(next))
     setError(null)
+    // Selecionar já confirma — evita esquecer o segundo toque.
+    goNext()
   }
 
   function openPhotoPicker() {

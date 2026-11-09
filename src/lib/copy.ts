@@ -38,9 +38,9 @@ export const copy = {
 
   photoAskTitle: 'Manda uma foto',
   photoAskBody:
-    'Uso na decoração e no mural da festa. Não é foto de perfil — escolhe uma imagem agora.',
+    'Uso na decoração e no mural da festa. Não é foto de perfil — escolhe e já vale.',
   photoAskCta: 'Escolher foto',
-  photoAskContinue: 'Usar essa',
+  photoAskContinue: 'Continuar com essa',
   photoAskChange: 'Trocar foto',
   photoAskLater: 'Depois',
   photoAskBack: 'Voltar',
@@ -155,9 +155,9 @@ export const copy = {
 
   photosTitle: 'Foto',
   photosLead: (mb: number) =>
-    `Pra decoração e mural da festa. Fica pendente até eu publicar. Até ${mb} MB.`,
+    `Pra decoração e mural da festa. Escolhe a imagem e eu mando na hora. Fica pendente até eu publicar. Até ${mb} MB.`,
   photosField: 'Arquivo',
-  photosCapture: 'Abrir câmera',
+  photosCapture: 'Escolher e enviar',
   photosSubmit: 'Enviar',
   photosSubmitting: 'Enviando…',
   photosOk: 'Recebida. Sai na festa depois da publicação.',
