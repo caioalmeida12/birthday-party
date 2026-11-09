@@ -4,7 +4,7 @@ import { useGuestNickname } from '../components/GuestSession'
 import { NicknameField } from '../components/NicknameField'
 import { MAX_PHOTO_BYTES } from '../lib/config'
 import { copy } from '../lib/copy'
-import { guestPhotoFileInputAttrs } from '../lib/photoPicker'
+import { filesFromPhotoPicker, guestPhotoFileInputAttrs } from '../lib/photoPicker'
 import { listPhotos, uploadPhoto, type Photo } from '../lib/photos'
 import { isSupabaseConfigured } from '../lib/supabase'
 
@@ -13,6 +13,7 @@ export function Photos() {
   const [photos, setPhotos] = useState<Photo[]>([])
   const [loading, setLoading] = useState(isSupabaseConfigured)
   const [submitting, setSubmitting] = useState(false)
+  const [progress, setProgress] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
@@ -54,30 +55,64 @@ export function Photos() {
     setPreview(nextUrl)
   }
 
-  async function uploadSelected(file: File) {
+  async function uploadSelected(files: File[]) {
+    if (files.length === 0) return
+
     setSubmitting(true)
     setError(null)
     setSuccess(null)
-    replacePreview(URL.createObjectURL(file))
+    setProgress(null)
+
+    let ok = 0
+    const failures: string[] = []
 
     try {
-      await uploadPhoto({ file, submittedBy, kind: 'decor' })
-      persistNickname()
+      for (let index = 0; index < files.length; index += 1) {
+        const file = files[index]
+        replacePreview(URL.createObjectURL(file))
+        if (files.length > 1) {
+          setProgress(copy.photosProgress(index + 1, files.length))
+        }
+
+        try {
+          await uploadPhoto({ file, submittedBy, kind: 'decor' })
+          ok += 1
+        } catch (err) {
+          const reason =
+            err instanceof Error ? err.message : 'Não deu pra enviar a foto.'
+          failures.push(`${file.name || 'foto'}: ${reason}`)
+        }
+      }
+
+      if (ok > 0) persistNickname()
       replacePreview(null)
-      setSuccess(copy.photosOk)
       if (inputRef.current) inputRef.current.value = ''
-      const data = await listPhotos()
-      setPhotos(data)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Não deu pra enviar a foto.')
+
+      if (ok > 0) {
+        setSuccess(ok === 1 ? copy.photosOk : copy.photosOkMany(ok))
+        const data = await listPhotos()
+        setPhotos(data)
+      }
+
+      if (failures.length > 0) {
+        setError(
+          ok === 0
+            ? failures[0]
+            : copy.photosPartialFail(ok, failures.length),
+        )
+      }
     } finally {
+      setProgress(null)
       setSubmitting(false)
     }
   }
 
   function onPick(event: ChangeEvent<HTMLInputElement>) {
-    const next = event.target.files?.[0] ?? null
-    if (!next) return
+    const next = filesFromPhotoPicker(event.target.files)
+    if (next.length === 0) {
+      setError(copy.cameraNeedPhoto)
+      return
+    }
     void uploadSelected(next)
   }
 
@@ -93,7 +128,7 @@ export function Photos() {
           ref={inputRef}
           id="photo-file"
           className="camera-file-input"
-          {...guestPhotoFileInputAttrs()}
+          {...guestPhotoFileInputAttrs({ multiple: true })}
           onChange={onPick}
           disabled={submitting || !isSupabaseConfigured}
         />
@@ -110,7 +145,9 @@ export function Photos() {
           disabled={submitting || !isSupabaseConfigured}
           onClick={() => inputRef.current?.click()}
         >
-          {submitting ? copy.photosSubmitting : copy.photosCapture}
+          {submitting
+            ? progress ?? copy.photosSubmitting
+            : copy.photosCapture}
         </button>
 
         {preview && error ? (

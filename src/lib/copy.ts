@@ -167,12 +167,16 @@ export const copy = {
 
   photosTitle: 'Foto',
   photosLead: (mb: number) =>
-    `Pra decoração e mural da festa. Escolhe a imagem e eu mando na hora. Fica pendente até eu publicar. Até ${mb} MB.`,
+    `Pra decoração e mural da festa. Pode mandar várias de uma vez. Fica pendente até eu publicar. Até ${mb} MB cada.`,
   photosField: 'Arquivo',
   photosCapture: 'Galeria ou câmera',
   photosSubmit: 'Enviar',
   photosSubmitting: 'Enviando…',
+  photosProgress: (current: number, total: number) => `Enviando ${current}/${total}…`,
   photosOk: 'Recebida. Sai na festa depois da publicação.',
+  photosOkMany: (n: number) => `${n} recebidas. Saem na festa depois da publicação.`,
+  photosPartialFail: (ok: number, fail: number) =>
+    `${ok} ok, ${fail} falharam. Tenta de novo nas que faltaram.`,
   photosListTitle: 'Publicadas',
   photosEmpty: 'Nenhuma ainda.',
 
