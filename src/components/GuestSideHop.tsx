@@ -27,7 +27,6 @@ function HopLink({
       <span className="guest-hop-emoji" aria-hidden="true">
         {item.emoji}
       </span>
-      <span className="guest-hop-label">{item.label}</span>
     </Link>
   )
 }

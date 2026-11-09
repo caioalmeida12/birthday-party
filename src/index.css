@@ -710,12 +710,10 @@ a:hover {
   z-index: 9;
   transform: translateY(-50%);
   display: grid;
-  justify-items: center;
-  align-content: center;
-  gap: 0.2rem;
-  width: 2.85rem;
-  min-height: 6.5rem;
-  padding: 0.85rem 0.35rem;
+  place-items: center;
+  width: 2.55rem;
+  height: 4.6rem;
+  padding: 0;
   color: var(--cream);
   text-decoration: none;
   background:
@@ -726,35 +724,21 @@ a:hover {
 
 .guest-hop-prev {
   left: 0;
-  padding-left: max(0.28rem, env(safe-area-inset-left));
+  padding-left: max(0.1rem, env(safe-area-inset-left));
   border-left: none;
   border-radius: 0 999px 999px 0;
 }
 
 .guest-hop-next {
   right: 0;
-  padding-right: max(0.28rem, env(safe-area-inset-right));
+  padding-right: max(0.1rem, env(safe-area-inset-right));
   border-right: none;
   border-radius: 999px 0 0 999px;
 }
 
 .guest-hop-emoji {
-  font-size: 1.2rem;
+  font-size: 1.35rem;
   line-height: 1;
-}
-
-.guest-hop-label {
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
-  font-size: 0.68rem;
-  font-weight: 650;
-  letter-spacing: 0.04em;
-  line-height: 1;
-  color: rgba(247, 231, 194, 0.78);
-}
-
-.guest-hop-next .guest-hop-label {
-  transform: none;
 }
 
 .guest-hop:hover,
@@ -771,22 +755,21 @@ a:hover {
 }
 
 .app-shell-hopping main {
-  padding-inline: clamp(2.6rem, 7vw, 3.4rem);
+  padding-inline: clamp(2.35rem, 6vw, 3rem);
 }
 
 @media (max-width: 420px) {
   .guest-hop {
-    width: 2.45rem;
-    min-height: 5.8rem;
-    padding-block: 0.7rem;
+    width: 2.25rem;
+    height: 4.2rem;
   }
 
-  .guest-hop-label {
-    font-size: 0.62rem;
+  .guest-hop-emoji {
+    font-size: 1.25rem;
   }
 
   .app-shell-hopping main {
-    padding-inline: 2.35rem;
+    padding-inline: 2.1rem;
   }
 }
 
