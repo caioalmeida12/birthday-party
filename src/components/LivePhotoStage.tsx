@@ -6,10 +6,15 @@ import {
   subscribeToLivePhotos,
   type Photo,
 } from '../lib/photos'
+import {
+  nextPhotoStageSpeed,
+  PHOTO_STAGE_SPEED_MS,
+  photoStageWindow,
+  stepPhotoIndex,
+  type PhotoStageSpeed,
+} from '../lib/photoStageWindow'
 import { isSupabaseConfigured } from '../lib/supabase'
 import { PartyPhoto } from './PartyPhoto'
-
-const ROTATE_MS = 8000
 
 type Props = {
   canModerate?: boolean
@@ -21,6 +26,8 @@ export function LivePhotoStage({ canModerate = false }: Props) {
   const [error, setError] = useState<string | null>(null)
   const [busyId, setBusyId] = useState<string | null>(null)
   const [index, setIndex] = useState(0)
+  const [speed, setSpeed] = useState<PhotoStageSpeed>('normal')
+  const [paused, setPaused] = useState(false)
 
   async function refresh() {
     const data = await listLivePhotos()
@@ -57,12 +64,12 @@ export function LivePhotoStage({ canModerate = false }: Props) {
   }, [])
 
   useEffect(() => {
-    if (photos.length < 2) return
+    if (paused || photos.length < 2) return
     const timer = window.setInterval(() => {
-      setIndex((current) => (current + 1) % photos.length)
-    }, ROTATE_MS)
+      setIndex((current) => stepPhotoIndex(current, photos.length, 1))
+    }, PHOTO_STAGE_SPEED_MS[speed])
     return () => window.clearInterval(timer)
-  }, [photos.length])
+  }, [photos.length, speed, paused, index])
 
   async function onRemove(photo: Photo) {
     setBusyId(photo.id)
@@ -77,8 +84,17 @@ export function LivePhotoStage({ canModerate = false }: Props) {
     }
   }
 
+  function go(delta: number) {
+    setIndex((current) => stepPhotoIndex(current, photos.length, delta))
+  }
+
+  function jumpTo(nextIndex: number) {
+    setIndex(nextIndex)
+  }
+
   const empty = !loading && photos.length === 0
   const current = photos[index] ?? null
+  const strip = photoStageWindow(photos, index, 3, 3)
 
   return (
     <div className={`host-photo-stage${empty ? ' host-photo-stage-empty' : ''}`}>
@@ -91,33 +107,110 @@ export function LivePhotoStage({ canModerate = false }: Props) {
       ) : null}
       {error ? <p className="form-msg form-msg-error host-photo-stage-msg">{error}</p> : null}
       {current ? (
-        <figure className="host-photo-slide">
-          <div className="host-photo-media">
-            <PartyPhoto
-              key={current.id}
-              src={current.publicUrl}
-              alt={current.submitted_by || 'Foto ao vivo'}
-            />
+        <>
+          <figure className="host-photo-slide">
+            <div className="host-photo-media">
+              <PartyPhoto
+                key={current.id}
+                src={current.publicUrl}
+                alt={current.submitted_by || 'Foto ao vivo'}
+              />
+            </div>
+            <figcaption>
+              <span>{current.submitted_by || copy.photoModAnonymous}</span>
+              <span className="host-photo-count">
+                {index + 1}/{photos.length}
+              </span>
+              {canModerate ? (
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-tiny"
+                  disabled={busyId === current.id}
+                  onClick={() => {
+                    void onRemove(current)
+                  }}
+                >
+                  {copy.hostLiveRemove}
+                </button>
+              ) : null}
+            </figcaption>
+          </figure>
+
+          <div className="host-photo-controls">
+            <button
+              type="button"
+              className="btn btn-ghost host-photo-ctrl"
+              disabled={photos.length < 2}
+              onClick={() => go(-1)}
+              aria-label={copy.hostPhotoPrev}
+            >
+              <i className="fa-solid fa-backward-step" aria-hidden="true" />
+              <span>{copy.hostPhotoPrev}</span>
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost host-photo-ctrl"
+              disabled={photos.length < 2}
+              onClick={() => setPaused((value) => !value)}
+              aria-label={paused ? copy.hostPhotoPlay : copy.hostPhotoPause}
+            >
+              <i
+                className={`fa-solid ${paused ? 'fa-play' : 'fa-pause'}`}
+                aria-hidden="true"
+              />
+              <span>{paused ? copy.hostPhotoPlay : copy.hostPhotoPause}</span>
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost host-photo-ctrl"
+              disabled={photos.length < 2}
+              onClick={() => go(1)}
+              aria-label={copy.hostPhotoNext}
+            >
+              <i className="fa-solid fa-forward-step" aria-hidden="true" />
+              <span>{copy.hostPhotoNext}</span>
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost host-photo-ctrl host-photo-speed"
+              disabled={photos.length < 2}
+              onClick={() => setSpeed((currentSpeed) => nextPhotoStageSpeed(currentSpeed))}
+              aria-label={copy.hostPhotoSpeed}
+            >
+              <i className="fa-solid fa-gauge-high" aria-hidden="true" />
+              <span>{copy.hostPhotoSpeedLabel(speed)}</span>
+            </button>
           </div>
-          <figcaption>
-            <span>{current.submitted_by || copy.photoModAnonymous}</span>
-            <span className="host-photo-count">
-              {index + 1}/{photos.length}
-            </span>
-            {canModerate ? (
-              <button
-                type="button"
-                className="btn btn-ghost btn-tiny"
-                disabled={busyId === current.id}
-                onClick={() => {
-                  void onRemove(current)
-                }}
-              >
-                {copy.hostLiveRemove}
-              </button>
-            ) : null}
-          </figcaption>
-        </figure>
+
+          {strip.length > 1 ? (
+            <div className="host-photo-strip" role="list" aria-label={copy.hostPhotoStrip}>
+              {strip.map((entry, stripIndex) => {
+                const active = entry.role === 'current'
+                return (
+                  <button
+                    key={`${entry.index}-${entry.role}-${stripIndex}`}
+                    type="button"
+                    role="listitem"
+                    className={`host-photo-thumb host-photo-thumb-${entry.role}`}
+                    aria-current={active ? 'true' : undefined}
+                    aria-label={
+                      active
+                        ? copy.hostPhotoThumbCurrent
+                        : copy.hostPhotoThumbJump(entry.index + 1)
+                    }
+                    onClick={() => jumpTo(entry.index)}
+                  >
+                    <PartyPhoto
+                      src={entry.item.publicUrl}
+                      alt=""
+                      className="host-photo-thumb-img"
+                    />
+                  </button>
+                )
+              })}
+            </div>
+          ) : null}
+        </>
       ) : null}
     </div>
   )

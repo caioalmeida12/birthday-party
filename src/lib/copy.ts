@@ -133,6 +133,16 @@ export const copy = {
   hostLiveEmpty: 'Nenhuma foto publicada ainda.',
   hostLiveEmptyHint: 'Escaneia o QR embaixo pra mandar foto.',
   hostLiveRemove: 'Apagar',
+  hostPhotoPrev: 'Anterior',
+  hostPhotoNext: 'Próxima',
+  hostPhotoPause: 'Pausar',
+  hostPhotoPlay: 'Seguir',
+  hostPhotoSpeed: 'Velocidade',
+  hostPhotoSpeedLabel: (speed: 'slow' | 'normal' | 'fast') =>
+    speed === 'slow' ? 'Lenta' : speed === 'fast' ? 'Rápida' : 'Normal',
+  hostPhotoStrip: 'Últimas e próximas fotos',
+  hostPhotoThumbCurrent: 'Foto atual',
+  hostPhotoThumbJump: (n: number) => `Ir pra foto ${n}`,
 
   rsvpHostTitle: 'Quem vem',
   rsvpHostEmpty: 'Ninguém confirmou ainda.',
