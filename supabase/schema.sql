@@ -130,6 +130,12 @@ create policy "party_messages_update_public"
   using (true)
   with check (true);
 
+drop policy if exists "party_messages_delete_public" on public.party_messages;
+create policy "party_messages_delete_public"
+  on public.party_messages for delete
+  to anon, authenticated
+  using (true);
+
 drop policy if exists "song_votes_select_public" on public.song_votes;
 create policy "song_votes_select_public"
   on public.song_votes for select

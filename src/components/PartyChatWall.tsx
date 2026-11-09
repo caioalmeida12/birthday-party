@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { copy } from '../lib/copy'
 import {
-  hideMessage,
+  deleteMessage,
   listMessages,
   subscribeToMessages,
   type PartyMessage,
@@ -69,14 +69,14 @@ export function PartyChatWall({ canModerate = false }: Props) {
     node.scrollTop = node.scrollHeight
   }, [messages])
 
-  async function onHide(messageId: string) {
+  async function onDelete(messageId: string) {
     setBusyId(messageId)
     setError(null)
     try {
-      await hideMessage(messageId)
+      await deleteMessage(messageId)
       await refresh()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Não deu pra esconder.')
+      setError(err instanceof Error ? err.message : 'Não deu pra apagar.')
     } finally {
       setBusyId(null)
     }
@@ -101,13 +101,13 @@ export function PartyChatWall({ canModerate = false }: Props) {
             {canModerate ? (
               <button
                 type="button"
-                className="btn btn-ghost btn-tiny"
+                className="btn btn-ghost btn-tiny btn-danger-ghost"
                 disabled={busyId === message.id}
                 onClick={() => {
-                  void onHide(message.id)
+                  void onDelete(message.id)
                 }}
               >
-                {copy.hostChatHide}
+                {copy.hostChatRemove}
               </button>
             ) : null}
           </li>

@@ -125,7 +125,7 @@ export const copy = {
   hostUpcomingRemove: 'Remover',
   hostChatTitle: 'Conversa',
   hostChatEmpty: 'Nenhuma mensagem.',
-  hostChatHide: 'Esconder',
+  hostChatRemove: 'Apagar',
   hostLiveTitle: 'Fotos publicadas',
   hostLiveEmpty: 'Nenhuma foto publicada ainda.',
   hostLiveEmptyHint: 'Escaneia o QR embaixo pra mandar foto.',

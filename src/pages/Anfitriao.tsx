@@ -655,7 +655,7 @@ function AnfitriaoHost() {
             <div className="host-audio-strip panel">{transport}</div>
           </div>
           <div className="host-tv-side">
-            <PartyChatWall canModerate={opsOpen} />
+            <PartyChatWall canModerate />
             <div className="host-tv-qr-dock panel">
               <GuestQr size={200} className="guest-qr-dock" path="" />
             </div>
@@ -668,7 +668,7 @@ function AnfitriaoHost() {
             {upcomingList}
           </div>
           <div className="host-tv-side">
-            <PartyChatWall canModerate={opsOpen} />
+            <PartyChatWall canModerate />
             <div className="host-tv-qr-dock panel">
               <GuestQr size={200} className="guest-qr-dock" path="" />
             </div>

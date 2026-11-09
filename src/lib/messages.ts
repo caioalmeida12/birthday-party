@@ -108,6 +108,23 @@ export async function hideMessage(messageId: string): Promise<void> {
   }
 }
 
+/** Apaga a mensagem. Se faltar policy de delete, faz soft-hide. */
+export async function deleteMessage(messageId: string): Promise<void> {
+  const client = requireSupabase()
+  const { error } = await client.from('party_messages').delete().eq('id', messageId)
+
+  if (!error) return
+
+  if (error.code === '42501' || /policy|permission|RLS/i.test(error.message)) {
+    await hideMessage(messageId)
+    return
+  }
+
+  const hinted = migrationHint(error)
+  if (hinted) throw hinted
+  throw error
+}
+
 export function subscribeToMessages(onChange: () => void): () => void {
   const client = requireSupabase()
   const channel = client
