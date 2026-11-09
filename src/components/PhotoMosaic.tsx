@@ -1,5 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { buildMasonryColumns, type MosaicItem } from '../lib/mosaicLayout'
+import {
+  isHeicPhotoUrl,
+  resolveDisplayablePhotoSrc,
+} from '../lib/preparePhotoBlob'
 import { listMosaicPhotos } from '../lib/photos'
 import { isSupabaseConfigured } from '../lib/supabase'
 
@@ -51,11 +55,18 @@ export function PhotoMosaic() {
         }
 
         const probed = await Promise.all(
-          photos.map(async (photo) => ({
-            id: photo.id,
-            src: photo.publicUrl,
-            aspect: await probeAspect(photo.publicUrl),
-          })),
+          photos.map(async (photo) => {
+            const src = isHeicPhotoUrl(photo.publicUrl)
+              ? await resolveDisplayablePhotoSrc(photo.publicUrl).catch(
+                  () => photo.publicUrl,
+                )
+              : photo.publicUrl
+            return {
+              id: photo.id,
+              src,
+              aspect: await probeAspect(src),
+            }
+          }),
         )
         if (!cancelled) setItems(probed)
       } catch {

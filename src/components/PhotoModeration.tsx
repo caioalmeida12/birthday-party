@@ -8,6 +8,7 @@ import {
   type Photo,
 } from '../lib/photos'
 import { isSupabaseConfigured } from '../lib/supabase'
+import { PartyPhoto } from './PartyPhoto'
 
 export function PhotoModeration() {
   const [pending, setPending] = useState<Photo[]>([])
@@ -84,7 +85,7 @@ export function PhotoModeration() {
         <ul className="photo-mod-list">
           {pending.map((photo) => (
             <li key={photo.id} className="photo-mod-item">
-              <img src={photo.publicUrl} alt="" className="photo-mod-thumb" />
+              <PartyPhoto src={photo.publicUrl} alt="" className="photo-mod-thumb" />
               <div className="photo-mod-meta">
                 <strong>{photo.submitted_by || copy.photoModAnonymous}</strong>
                 <div className="photo-mod-actions">
@@ -124,7 +125,7 @@ export function PhotoModeration() {
         <ul className="photo-mod-list">
           {published.map((photo) => (
             <li key={photo.id} className="photo-mod-item">
-              <img src={photo.publicUrl} alt="" className="photo-mod-thumb" />
+              <PartyPhoto src={photo.publicUrl} alt="" className="photo-mod-thumb" />
               <div className="photo-mod-meta">
                 <strong>{photo.submitted_by || copy.photoModAnonymous}</strong>
                 <div className="photo-mod-actions">

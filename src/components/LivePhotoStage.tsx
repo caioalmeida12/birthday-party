@@ -7,6 +7,7 @@ import {
   type Photo,
 } from '../lib/photos'
 import { isSupabaseConfigured } from '../lib/supabase'
+import { PartyPhoto } from './PartyPhoto'
 
 const ROTATE_MS = 8000
 
@@ -92,7 +93,7 @@ export function LivePhotoStage({ canModerate = false }: Props) {
       {current ? (
         <figure className="host-photo-slide">
           <div className="host-photo-media">
-            <img
+            <PartyPhoto
               key={current.id}
               src={current.publicUrl}
               alt={current.submitted_by || 'Foto ao vivo'}

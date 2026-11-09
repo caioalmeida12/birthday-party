@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { useGuestNickname } from '../components/GuestSession'
 import { NicknameField } from '../components/NicknameField'
+import { PartyPhoto } from '../components/PartyPhoto'
 import { MAX_PHOTO_BYTES } from '../lib/config'
 import { copy } from '../lib/copy'
 import { filesFromPhotoPicker, guestPhotoFileInputAttrs } from '../lib/photoPicker'
@@ -177,7 +178,11 @@ export function Photos() {
               className="photo-card"
               style={{ animationDelay: `${index * 50}ms` }}
             >
-              <img src={photo.publicUrl} alt={photo.submitted_by || 'Foto da festa'} loading="lazy" />
+              <PartyPhoto
+                src={photo.publicUrl}
+                alt={photo.submitted_by || 'Foto da festa'}
+                loading="lazy"
+              />
               {photo.submitted_by ? <figcaption>{photo.submitted_by}</figcaption> : null}
             </figure>
           ))}

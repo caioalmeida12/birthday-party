@@ -1,6 +1,9 @@
-import { MAX_PHOTO_BYTES, PHOTO_BUCKET } from './config'
+import { PHOTO_BUCKET } from './config'
 import { parsePhotoKind, type PhotoKind } from './photoKind'
-import { isLikelyImageFile } from './photoPicker'
+import {
+  extensionForPhotoBlob,
+  preparePhotoBlob,
+} from './preparePhotoBlob'
 import { requireSupabase } from './supabase'
 
 export type Photo = {
@@ -56,67 +59,6 @@ function migrationHint(error: { code?: string; message: string }): Error | null 
     )
   }
   return null
-}
-
-function assertImageFile(file: File) {
-  if (!isLikelyImageFile(file)) {
-    throw new Error('Envie apenas arquivos de imagem.')
-  }
-}
-
-function isHeicLike(file: File): boolean {
-  return (
-    file.type === 'image/heic' ||
-    file.type === 'image/heif' ||
-    /\.hei[cf]$/i.test(file.name)
-  )
-}
-
-async function compressImage(file: File): Promise<Blob> {
-  if (file.size <= MAX_PHOTO_BYTES && !isHeicLike(file)) {
-    return file
-  }
-
-  let bitmap: ImageBitmap
-  try {
-    bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' })
-  } catch {
-    if (file.size <= MAX_PHOTO_BYTES) return file
-    throw new Error(
-      'Não deu pra ler essa foto da galeria. Tenta JPG/PNG ou tira na hora.',
-    )
-  }
-
-  const maxSide = 1920
-  const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height))
-  const width = Math.round(bitmap.width * scale)
-  const height = Math.round(bitmap.height * scale)
-
-  const canvas = document.createElement('canvas')
-  canvas.width = width
-  canvas.height = height
-  const ctx = canvas.getContext('2d')
-  if (!ctx) return file
-  ctx.drawImage(bitmap, 0, 0, width, height)
-  bitmap.close()
-
-  const blob = await new Promise<Blob | null>((resolve) => {
-    canvas.toBlob((result) => resolve(result), 'image/jpeg', 0.82)
-  })
-
-  if (!blob) return file
-  if (blob.size > MAX_PHOTO_BYTES) {
-    throw new Error('A imagem continua grande demais após compressão (máx. 5 MB).')
-  }
-  return blob
-}
-
-function extensionFor(blob: Blob, originalName: string): string {
-  if (blob.type === 'image/jpeg') return 'jpg'
-  if (blob.type === 'image/png') return 'png'
-  if (blob.type === 'image/webp') return 'webp'
-  const fromName = originalName.split('.').pop()?.toLowerCase()
-  return fromName || 'jpg'
 }
 
 type FetchOpts = {
@@ -199,14 +141,9 @@ export async function listLivePhotos(): Promise<Photo[]> {
 }
 
 export async function uploadPhoto(input: PhotoInput): Promise<Photo> {
-  assertImageFile(input.file)
-  if (input.file.size > MAX_PHOTO_BYTES * 3) {
-    throw new Error('Arquivo muito grande. Escolha uma imagem menor que ~15 MB.')
-  }
-
   const kind: PhotoKind = input.kind === 'live' ? 'live' : 'decor'
-  const blob = await compressImage(input.file)
-  const ext = extensionFor(blob, input.file.name)
+  const blob = await preparePhotoBlob(input.file)
+  const ext = extensionForPhotoBlob(blob, input.file.name)
   const path = `${crypto.randomUUID()}.${ext}`
   const submittedBy = input.submittedBy?.trim() || null
 

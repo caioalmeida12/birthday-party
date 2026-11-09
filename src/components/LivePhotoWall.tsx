@@ -8,6 +8,7 @@ import {
 } from '../lib/photos'
 import { isSupabaseConfigured } from '../lib/supabase'
 import { GuestQr } from './GuestQr'
+import { PartyPhoto } from './PartyPhoto'
 
 type Props = {
   canModerate?: boolean
@@ -96,7 +97,7 @@ export function LivePhotoWall({ canModerate = false }: Props) {
         <div className="live-photo-grid">
           {photos.map((photo) => (
             <figure key={photo.id} className="live-photo-card">
-              <img
+              <PartyPhoto
                 src={photo.publicUrl}
                 alt={photo.submitted_by || 'Foto ao vivo'}
                 loading="lazy"
