@@ -82,7 +82,7 @@ export function LivePhotoWall({ canModerate = false }: Props) {
           <p>{copy.hostLiveEmpty}</p>
           <p className="host-live-empty-hint">{copy.hostLiveEmptyHint}</p>
           <GuestQr
-            path="camera"
+            path="fotos"
             size={120}
             className="guest-qr-in-empty"
             title={copy.hostQrCameraTitle}

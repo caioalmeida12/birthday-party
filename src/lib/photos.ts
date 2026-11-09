@@ -164,9 +164,20 @@ export async function listPendingPhotos(): Promise<Photo[]> {
   return fetchPhotoRows({ approvedOnly: false, kind: 'decor' })
 }
 
-/** Mural da festa na TV. */
+/**
+ * Mural da festa na TV: fotos publicadas (decor + legado live).
+ * Novo envio unificado entra como decor e só aparece depois da publicação.
+ */
 export async function listLivePhotos(): Promise<Photo[]> {
-  return fetchPhotoRows({ approvedOnly: true, kind: 'live' })
+  const [decor, live] = await Promise.all([
+    fetchPhotoRows({ approvedOnly: true, kind: 'decor' }),
+    fetchPhotoRows({ approvedOnly: true, kind: 'live' }),
+  ])
+  const byId = new Map<string, Photo>()
+  for (const photo of [...decor, ...live]) {
+    byId.set(photo.id, photo)
+  }
+  return [...byId.values()].sort((a, b) => b.created_at.localeCompare(a.created_at))
 }
 
 export async function uploadPhoto(input: PhotoInput): Promise<Photo> {

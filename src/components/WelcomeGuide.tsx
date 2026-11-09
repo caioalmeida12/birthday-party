@@ -1,13 +1,15 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
 import { downloadIcs, googleCalendarUrl } from '../lib/calendarLink'
 import { copy } from '../lib/copy'
 import { partyMapsUrl } from '../lib/partyDetails'
+import { plusOnesFromCompany } from '../lib/rsvpMath'
 import { InviteArt } from './InviteArt'
 import { PhotoMosaic } from './PhotoMosaic'
 
 export type WelcomeGuideFinish = {
   name: string
   goToPhotos: boolean
+  photoFile: File | null
   attending: boolean
   plusOnes: number
 }
@@ -17,16 +19,27 @@ type Props = {
   onFinish: (result: WelcomeGuideFinish) => void | Promise<void>
 }
 
-const STEPS = 5
+type CompanyChoice = 'alone' | 'with'
+
+const STEPS = 4
 
 export function WelcomeGuide({ initialName = '', onFinish }: Props) {
   const [step, setStep] = useState(0)
   const [draft, setDraft] = useState(initialName)
-  const [goToPhotos, setGoToPhotos] = useState(false)
+  const [photoFile, setPhotoFile] = useState<File | null>(null)
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null)
   const [attending, setAttending] = useState<boolean | null>(null)
-  const [plusOnes, setPlusOnes] = useState(0)
+  const [company, setCompany] = useState<CompanyChoice | null>(null)
+  const [plusOnes, setPlusOnes] = useState(1)
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const photoInputRef = useRef<HTMLInputElement | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (photoPreview) URL.revokeObjectURL(photoPreview)
+    }
+  }, [photoPreview])
 
   function goNext() {
     setError(null)
@@ -54,12 +67,44 @@ export function WelcomeGuide({ initialName = '', onFinish }: Props) {
     goNext()
   }
 
-  function continueFromPhoto(wantPhotos: boolean) {
+  function onPickPhoto(event: ChangeEvent<HTMLInputElement>) {
+    const next = event.target.files?.[0] ?? null
+    if (!next) return
+    if (photoPreview) URL.revokeObjectURL(photoPreview)
+    setPhotoFile(next)
+    setPhotoPreview(URL.createObjectURL(next))
+    setError(null)
+  }
+
+  function openPhotoPicker() {
     if (!requireName()) {
-      setStep(2)
+      setStep(1)
       return
     }
-    setGoToPhotos(wantPhotos)
+    photoInputRef.current?.click()
+  }
+
+  function continueWithoutPhoto() {
+    if (!requireName()) {
+      setStep(1)
+      return
+    }
+    setPhotoFile(null)
+    if (photoPreview) URL.revokeObjectURL(photoPreview)
+    setPhotoPreview(null)
+    if (photoInputRef.current) photoInputRef.current.value = ''
+    goNext()
+  }
+
+  function continueWithPhoto() {
+    if (!requireName()) {
+      setStep(1)
+      return
+    }
+    if (!photoFile) {
+      setError(copy.photoAskNeedFile)
+      return
+    }
     goNext()
   }
 
@@ -67,22 +112,29 @@ export function WelcomeGuide({ initialName = '', onFinish }: Props) {
     event.preventDefault()
     const name = requireName()
     if (!name) {
-      setStep(2)
+      setStep(1)
       return
     }
     if (attending === null) {
       setError(copy.rsvpError)
       return
     }
+    if (attending && company === null) {
+      setError(copy.rsvpCompanyError)
+      return
+    }
+
+    const resolvedPlusOnes = attending ? plusOnesFromCompany(company, plusOnes) : 0
 
     setSubmitting(true)
     setError(null)
     try {
       await onFinish({
         name,
-        goToPhotos,
+        goToPhotos: Boolean(photoFile),
+        photoFile,
         attending,
-        plusOnes: attending ? plusOnes : 0,
+        plusOnes: resolvedPlusOnes,
       })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não deu pra salvar.')
@@ -156,32 +208,6 @@ export function WelcomeGuide({ initialName = '', onFinish }: Props) {
         ) : null}
 
         {step === 1 ? (
-          <div className="welcome-pane" key="purpose">
-            <h1 id="welcome-guide-title" className="welcome-guide-title">
-              {copy.purposeTitle}
-            </h1>
-            <ul className="welcome-purposes">
-              <li className="welcome-purpose welcome-purpose-photo">
-                <strong>{copy.purposePhotoTitle}</strong>
-                <span>{copy.purposePhotoBody}</span>
-              </li>
-              <li className="welcome-purpose">
-                <strong>{copy.purposeMusicTitle}</strong>
-                <span>{copy.purposeMusicBody}</span>
-              </li>
-            </ul>
-            <div className="welcome-nav">
-              <button className="btn btn-ghost" type="button" onClick={goBack}>
-                {copy.purposeBack}
-              </button>
-              <button className="btn btn-primary" type="button" onClick={goNext}>
-                {copy.purposeNext}
-              </button>
-            </div>
-          </div>
-        ) : null}
-
-        {step === 2 ? (
           <div className="welcome-pane" key="name">
             <h1 id="welcome-guide-title" className="welcome-guide-title">
               {copy.nameTitle}
@@ -216,33 +242,67 @@ export function WelcomeGuide({ initialName = '', onFinish }: Props) {
           </div>
         ) : null}
 
-        {step === 3 ? (
+        {step === 2 ? (
           <div className="welcome-pane" key="photo">
             <h1 id="welcome-guide-title" className="welcome-guide-title">
               {copy.photoAskTitle}
             </h1>
             <p className="welcome-guide-lead">{copy.photoAskBody}</p>
-            <button
-              className="btn btn-primary btn-lg welcome-full"
-              type="button"
-              onClick={() => continueFromPhoto(true)}
-            >
-              {copy.photoAskCta}
-            </button>
-            <button
-              className="btn btn-ghost welcome-full"
-              type="button"
-              onClick={() => continueFromPhoto(false)}
-            >
-              {copy.photoAskLater}
-            </button>
+            <input
+              ref={photoInputRef}
+              className="camera-file-input"
+              type="file"
+              accept="image/*"
+              onChange={onPickPhoto}
+            />
+            {photoPreview ? (
+              <div className="welcome-photo-preview">
+                <img src={photoPreview} alt="" />
+              </div>
+            ) : null}
+            {error ? <p className="form-msg form-msg-error">{error}</p> : null}
+            {photoFile ? (
+              <>
+                <button
+                  className="btn btn-primary btn-lg welcome-full"
+                  type="button"
+                  onClick={continueWithPhoto}
+                >
+                  {copy.photoAskContinue}
+                </button>
+                <button
+                  className="btn btn-ghost welcome-full"
+                  type="button"
+                  onClick={openPhotoPicker}
+                >
+                  {copy.photoAskChange}
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  className="btn btn-primary btn-lg welcome-full"
+                  type="button"
+                  onClick={openPhotoPicker}
+                >
+                  {copy.photoAskCta}
+                </button>
+                <button
+                  className="btn btn-ghost welcome-full"
+                  type="button"
+                  onClick={continueWithoutPhoto}
+                >
+                  {copy.photoAskLater}
+                </button>
+              </>
+            )}
             <button className="welcome-back-link" type="button" onClick={goBack}>
               {copy.photoAskBack}
             </button>
           </div>
         ) : null}
 
-        {step === 4 ? (
+        {step === 3 ? (
           <div className="welcome-pane" key="rsvp">
             <h1 id="welcome-guide-title" className="welcome-guide-title">
               {copy.rsvpTitle}
@@ -267,7 +327,8 @@ export function WelcomeGuide({ initialName = '', onFinish }: Props) {
                   aria-pressed={attending === false}
                   onClick={() => {
                     setAttending(false)
-                    setPlusOnes(0)
+                    setCompany(null)
+                    setPlusOnes(1)
                     setError(null)
                   }}
                 >
@@ -276,17 +337,46 @@ export function WelcomeGuide({ initialName = '', onFinish }: Props) {
               </div>
 
               {attending === true ? (
+                <div className="rsvp-choice" role="group" aria-label={copy.rsvpCompanyLabel}>
+                  <button
+                    type="button"
+                    className={`btn rsvp-choice-btn${company === 'alone' ? ' rsvp-choice-on' : ' btn-ghost'}`}
+                    aria-pressed={company === 'alone'}
+                    onClick={() => {
+                      setCompany('alone')
+                      setPlusOnes(1)
+                      setError(null)
+                    }}
+                  >
+                    {copy.rsvpAlone}
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn rsvp-choice-btn${company === 'with' ? ' rsvp-choice-on' : ' btn-ghost'}`}
+                    aria-pressed={company === 'with'}
+                    onClick={() => {
+                      setCompany('with')
+                      setPlusOnes((current) => Math.max(1, current))
+                      setError(null)
+                    }}
+                  >
+                    {copy.rsvpWith}
+                  </button>
+                </div>
+              ) : null}
+
+              {attending === true && company === 'with' ? (
                 <label>
                   {copy.rsvpPlusLabel}
                   <input
                     type="number"
-                    min={0}
+                    min={1}
                     max={30}
                     inputMode="numeric"
                     value={plusOnes}
                     onChange={(event) => {
                       const next = Number(event.target.value)
-                      setPlusOnes(Number.isFinite(next) ? Math.max(0, Math.min(30, next)) : 0)
+                      setPlusOnes(Number.isFinite(next) ? Math.max(1, Math.min(30, next)) : 1)
                     }}
                   />
                   <span className="field-hint">{copy.rsvpPlusHint}</span>

@@ -335,6 +335,21 @@ a:hover {
   font-weight: 600;
 }
 
+.welcome-photo-preview {
+  margin: 0.25rem 0 0.75rem;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(247, 231, 194, 0.18);
+  background: rgba(7, 18, 14, 0.55);
+}
+
+.welcome-photo-preview img {
+  display: block;
+  width: 100%;
+  max-height: 240px;
+  object-fit: cover;
+}
+
 .welcome-purpose-note {
   font-size: 0.85rem !important;
   color: rgba(240, 180, 41, 0.9) !important;

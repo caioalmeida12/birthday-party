@@ -19,6 +19,15 @@ export function headsForAttending(plusOnes: number): number {
   return 1 + clampPlusOnes(plusOnes)
 }
 
+/** Acompanhantes a partir da escolha sozinho / levar alguém. */
+export function plusOnesFromCompany(
+  company: 'alone' | 'with' | null,
+  count: number,
+): number {
+  if (company !== 'with') return 0
+  return Math.max(1, clampPlusOnes(count))
+}
+
 export function summarizeRsvps(rsvps: Rsvp[]): {
   yes: number
   no: number

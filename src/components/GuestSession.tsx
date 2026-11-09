@@ -15,6 +15,7 @@ import {
   markWelcomeGuideSeen,
   rememberGuestName,
 } from '../lib/guestProfile'
+import { uploadPhoto } from '../lib/photos'
 import { upsertRsvp } from '../lib/rsvps'
 import { isSupabaseConfigured } from '../lib/supabase'
 import { WelcomeGuide, type WelcomeGuideFinish } from './WelcomeGuide'
@@ -136,11 +137,18 @@ export function GuestSessionProvider({ children }: { children: ReactNode }) {
           attending: result.attending,
           plusOnes: result.plusOnes,
         })
+        if (result.photoFile) {
+          await uploadPhoto({
+            file: result.photoFile,
+            submittedBy: result.name,
+            kind: 'decor',
+          })
+        }
       }
       markWelcomeGuideSeen()
       setGuideSeen(true)
       enterWithName(result.name)
-      // Deep link (QR câmera/música): fica na URL atual. Home + pediu foto → /fotos.
+      // Deep link (QR câmera/música): fica na URL atual. Home + mandou/quer foto → /fotos.
       if (result.goToPhotos && isHomePath(location.pathname)) {
         navigate('/fotos')
       }

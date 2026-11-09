@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { clampPlusOnes, headsForAttending, summarizeRsvps, type Rsvp } from './rsvpMath'
+import {
+  clampPlusOnes,
+  headsForAttending,
+  plusOnesFromCompany,
+  summarizeRsvps,
+  type Rsvp,
+} from './rsvpMath'
 
 function rsvp(partial: Partial<Rsvp> & Pick<Rsvp, 'name' | 'attending' | 'plusOnes'>): Rsvp {
   const heads = partial.attending ? 1 + partial.plusOnes : 0
@@ -22,6 +28,15 @@ describe('headsForAttending', () => {
   it('conta a pessoa + acompanhantes', () => {
     expect(headsForAttending(0)).toBe(1)
     expect(headsForAttending(3)).toBe(4)
+  })
+})
+
+describe('plusOnesFromCompany', () => {
+  it('sozinho ou sem escolha = 0; com alguém = pelo menos 1', () => {
+    expect(plusOnesFromCompany('alone', 5)).toBe(0)
+    expect(plusOnesFromCompany(null, 2)).toBe(0)
+    expect(plusOnesFromCompany('with', 0)).toBe(1)
+    expect(plusOnesFromCompany('with', 3)).toBe(3)
   })
 })
 

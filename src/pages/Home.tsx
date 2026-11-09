@@ -33,8 +33,8 @@ export function Home() {
           </a>
         </p>
         <div className="hero-actions hero-actions-stack">
-          <Link className="hero-action" to="/camera">
-            <span className="btn btn-primary btn-lg">{copy.hostQrCameraTitle}</span>
+          <Link className="hero-action" to="/fotos">
+            <span className="btn btn-primary btn-lg">{copy.homePhotoCta}</span>
           </Link>
           <Link className="hero-action" to="/musicas">
             <span className="btn btn-ghost btn-lg">{copy.homeMusicCta}</span>
