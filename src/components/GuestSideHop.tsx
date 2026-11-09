@@ -15,9 +15,7 @@ function HopLink({
   side: 'prev' | 'next'
 }) {
   const hint =
-    side === 'prev'
-      ? copy.navHopPrev(item.label)
-      : copy.navHopNext(item.label)
+    side === 'prev' ? copy.navHopPrev(item.label) : copy.navHopNext(item.label)
 
   return (
     <Link
@@ -26,17 +24,15 @@ function HopLink({
       aria-label={hint}
       title={hint}
     >
-      <span className="guest-hop-edge" aria-hidden="true" />
-      <span className="guest-hop-body">
-        <span className="guest-hop-emoji" aria-hidden="true">
-          {item.emoji}
-        </span>
-        <span className="guest-hop-label">{item.label}</span>
+      <span className="guest-hop-emoji" aria-hidden="true">
+        {item.emoji}
       </span>
+      <span className="guest-hop-label">{item.label}</span>
     </Link>
   )
 }
 
+/** Abas grudadas nas bordas — sensação de páginas ao lado, tipo livro. */
 export function GuestSideHop({ pathname, ready }: Props) {
   const neighbors = guestHopNeighbors(pathname, ready)
   if (!neighbors) return null
