@@ -31,11 +31,15 @@ describe('sortSongsForBoard', () => {
 })
 
 describe('sortSongsForQueue', () => {
-  it('ainda prioriza posição do anfitrião na TV', () => {
-    const ordered = sortSongsForQueue([
+  it('prioriza score na TV, igual ao board do convidado', () => {
+    const songs = [
       song({ id: 'a', position: 1, score: 0 }),
-      song({ id: 'b', position: 2, score: 9 }),
-    ])
-    expect(ordered.map((item) => item.id)).toEqual(['a', 'b'])
+      song({ id: 'b', position: 2, score: 5 }),
+      song({ id: 'c', position: 3, score: 2 }),
+    ]
+    const queue = sortSongsForQueue(songs).map((item) => item.id)
+    const board = sortSongsForBoard(songs).map((item) => item.id)
+    expect(queue).toEqual(['b', 'c', 'a'])
+    expect(queue).toEqual(board)
   })
 })

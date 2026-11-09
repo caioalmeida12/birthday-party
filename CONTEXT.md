@@ -4,7 +4,7 @@ Site do aniversário para a galera participar pelo celular; notebook na TV é a 
 
 ## Para que serve cada coisa
 
-- **Músicas:** o convidado manda sugestões pelo **nome** ou pelo endereço (Spotify/YouTube); na hora da festa elas tocam na caixa de som. Em `/musicas`, a fila reordena ao vivo por score (gostei sobe). A TV/anfitrião ainda respeita posição manual no play.
+- **Músicas:** o convidado manda sugestões pelo **nome** ou pelo endereço (Spotify/YouTube); na hora da festa elas tocam na caixa de som. Fila de `/musicas` e play da TV usam a mesma ordem por score (gostei sobe). Empate → posição manual do anfitrião. Playhead não deixa faixa já tocada/atual pular a fila.
 - **Fotos:** um só conceito pro convidado (`/fotos`, QR antigo `/camera` redireciona). Envio entra como `kind=decor`, pendente; o anfitrião publica em `/anfitriao` → Operação. Publicadas vão pra galeria, impressão, mosaico e mural da TV. Dá pra **apagar** publicadas na Operação. Legado `kind=live` ainda aparece no mural. Migration: `supabase/migration-photo-moderation.sql` (+ `migration-party-chat-live.sql`).
 - **Conversa:** chat nativo (`party_messages`) no celular (`/conversa`, layout tipo chat: thread em cima, digitação embaixo); mural na TV. Em `/anfitriao`, cada mensagem tem **Apagar** (delete; se faltar policy, soft-hide). Migration: `supabase/migration-party-messages-delete.sql`.
 

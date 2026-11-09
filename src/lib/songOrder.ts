@@ -6,15 +6,12 @@ export type OrderableSong = {
   skipped: boolean
 }
 
-/** Fila da TV / playhead: posição manual do anfitrião manda. */
+/**
+ * Fila da TV / playhead: mesma ordem do board do convidado (score manda).
+ * Empate → posição do anfitrião → quem entrou antes. Skipped fora.
+ */
 export function sortSongsForQueue<T extends OrderableSong>(songs: T[]): T[] {
-  return [...songs]
-    .filter((song) => !song.skipped)
-    .sort((a, b) => {
-      if (a.position !== b.position) return a.position - b.position
-      if (b.score !== a.score) return b.score - a.score
-      return a.created_at.localeCompare(b.created_at)
-    })
+  return sortSongsForBoard(songs).filter((song) => !song.skipped)
 }
 
 /**

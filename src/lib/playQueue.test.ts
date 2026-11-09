@@ -39,13 +39,13 @@ describe('playQueue playhead', () => {
   })
 
   it('upvote que sobe a 3ª não enterra a 1ª que ainda não tocou', () => {
-    // Fila mental: 1=A, 2=B (tocando), 3=C. C leva upvote e vira posição 1.
-    const hotC = song({ id: 'c', title: 'Três', position: 1, score: 99 })
-    const midA = song({ id: 'a', title: 'Um', position: 2, score: 0 })
-    const midB = song({ id: 'b', title: 'Dois', position: 3, score: 0 })
+    // Fila mental: A, B (tocando), C. C leva gostei e sobe no score.
+    const midA = song({ id: 'a', title: 'Um', position: 1, score: 0 })
+    const midB = song({ id: 'b', title: 'Dois', position: 2, score: 0 })
+    const hotC = song({ id: 'c', title: 'Três', position: 3, score: 99 })
 
     const state = { playedIds: [] as string[], currentId: 'b' }
-    const view = buildPlayQueue([hotC, midA, midB], state)
+    const view = buildPlayQueue([midA, midB, hotC], state)
 
     expect(view.current?.id).toBe('b')
     // C sobe no upcoming, A continua — vai tocar depois.
@@ -53,10 +53,10 @@ describe('playQueue playhead', () => {
   })
 
   it('garante que a antiga 1ª toca depois da atual e da que subiu', () => {
-    const hotC = song({ id: 'c', title: 'Três', position: 1, score: 99 })
-    const midA = song({ id: 'a', title: 'Um', position: 2, score: 0 })
-    const midB = song({ id: 'b', title: 'Dois', position: 3, score: 0 })
-    const songs = [hotC, midA, midB]
+    const midA = song({ id: 'a', title: 'Um', position: 1, score: 0 })
+    const midB = song({ id: 'b', title: 'Dois', position: 2, score: 0 })
+    const hotC = song({ id: 'c', title: 'Três', position: 3, score: 99 })
+    const songs = [midA, midB, hotC]
 
     let state: PlayQueueState = { playedIds: [], currentId: 'b' }
     state = advancePlayQueue(songs, state, 1)

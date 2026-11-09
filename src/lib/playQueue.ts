@@ -29,7 +29,7 @@ export function eligibleSongs(songs: Song[]): Song[] {
  * Monta a fila com playhead:
  * - played: já tocaram nesta rodada (ordem em que tocaram)
  * - current: está tocando (fixa, mesmo se a ordem global mudar)
- * - upcoming: o resto, reordenado por position/score
+ * - upcoming: o resto, reordenado por score (igual /musicas)
  *
  * Upvote / reordenação só mexem em `upcoming`. Ninguém “pula” o playhead
  * e some sem tocar.
