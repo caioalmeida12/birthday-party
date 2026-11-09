@@ -156,7 +156,7 @@ export const copy = {
   songsPickConfirming: 'Enviando…',
   songsPickAgain: 'Buscar de novo',
   songsQueueTitle: 'Fila',
-  songsQueueLead: 'Ordem na festa. Gostei sobe a música.',
+  songsQueueLead: 'Mais gostei sobe na hora. Menos fica pra baixo.',
   songsQueueEmpty: 'Nada ainda.',
   songsQueueOne: '1 na fila',
   songsQueueMany: (n: number) => `${n} na fila`,
