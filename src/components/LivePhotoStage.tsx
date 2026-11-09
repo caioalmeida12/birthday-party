@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { copy } from '../lib/copy'
 import {
   listLivePhotos,
@@ -10,7 +10,9 @@ import {
   nextPhotoStageSpeed,
   PHOTO_STAGE_SPEED_MS,
   photoStageWindow,
+  shufflePhotoOrder,
   stepPhotoIndex,
+  syncPhotoStageOrder,
   type PhotoStageSpeed,
 } from '../lib/photoStageWindow'
 import { isSupabaseConfigured } from '../lib/supabase'
@@ -28,11 +30,33 @@ export function LivePhotoStage({ canModerate = false }: Props) {
   const [index, setIndex] = useState(0)
   const [speed, setSpeed] = useState<PhotoStageSpeed>('normal')
   const [paused, setPaused] = useState(false)
+  const [shuffled, setShuffled] = useState(false)
+
+  const photosRef = useRef(photos)
+  const indexRef = useRef(index)
+  const shuffledRef = useRef(shuffled)
+
+  useEffect(() => {
+    photosRef.current = photos
+  }, [photos])
+  useEffect(() => {
+    indexRef.current = index
+  }, [index])
+  useEffect(() => {
+    shuffledRef.current = shuffled
+  }, [shuffled])
+
+  function applyList(next: Photo[], currentId: string | null) {
+    setPhotos(next)
+    const at = currentId ? next.findIndex((photo) => photo.id === currentId) : 0
+    setIndex(next.length === 0 ? 0 : at >= 0 ? at : 0)
+  }
 
   async function refresh() {
     const data = await listLivePhotos()
-    setPhotos(data)
-    setIndex((current) => (data.length === 0 ? 0 : current % data.length))
+    const previous = photosRef.current
+    const currentId = previous[indexRef.current]?.id ?? null
+    applyList(syncPhotoStageOrder(previous, data, shuffledRef.current), currentId)
   }
 
   useEffect(() => {
@@ -43,7 +67,10 @@ export function LivePhotoStage({ canModerate = false }: Props) {
     void (async () => {
       try {
         const data = await listLivePhotos()
-        if (!cancelled) setPhotos(data)
+        if (!cancelled) {
+          setPhotos(data)
+          setIndex(0)
+        }
       } catch (err) {
         if (!cancelled) {
           setError(err instanceof Error ? err.message : 'Falha ao carregar fotos ao vivo.')
@@ -92,6 +119,26 @@ export function LivePhotoStage({ canModerate = false }: Props) {
     setIndex(nextIndex)
   }
 
+  async function toggleShuffle() {
+    if (shuffled) {
+      setShuffled(false)
+      try {
+        const data = await listLivePhotos()
+        const currentId = photosRef.current[indexRef.current]?.id ?? null
+        applyList(data, currentId)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Não deu pra restaurar a ordem.')
+      }
+      return
+    }
+
+    const currentId = photos[index]?.id ?? null
+    const next = shufflePhotoOrder(photos, currentId)
+    setPhotos(next)
+    setIndex(0)
+    setShuffled(true)
+  }
+
   const empty = !loading && photos.length === 0
   const current = photos[index] ?? null
   const strip = photoStageWindow(photos, index, 3, 3)
@@ -120,6 +167,7 @@ export function LivePhotoStage({ canModerate = false }: Props) {
               <span>{current.submitted_by || copy.photoModAnonymous}</span>
               <span className="host-photo-count">
                 {index + 1}/{photos.length}
+                {shuffled ? ` · ${copy.hostPhotoShuffle}` : ''}
               </span>
               {canModerate ? (
                 <button
@@ -169,6 +217,19 @@ export function LivePhotoStage({ canModerate = false }: Props) {
             >
               <i className="fa-solid fa-forward-step" aria-hidden="true" />
               <span>{copy.hostPhotoNext}</span>
+            </button>
+            <button
+              type="button"
+              className={`btn btn-ghost host-photo-ctrl${shuffled ? ' host-photo-ctrl-active' : ''}`}
+              disabled={photos.length < 2}
+              onClick={() => {
+                void toggleShuffle()
+              }}
+              aria-pressed={shuffled}
+              aria-label={shuffled ? copy.hostPhotoShuffleOn : copy.hostPhotoShuffleOff}
+            >
+              <i className="fa-solid fa-shuffle" aria-hidden="true" />
+              <span>{copy.hostPhotoShuffle}</span>
             </button>
             <button
               type="button"

@@ -3,7 +3,9 @@ import {
   nextPhotoStageSpeed,
   photoStageWindow,
   PHOTO_STAGE_SPEED_MS,
+  shufflePhotoOrder,
   stepPhotoIndex,
+  syncPhotoStageOrder,
   wrapPhotoIndex,
 } from './photoStageWindow'
 
@@ -52,5 +54,45 @@ describe('photo stage speed', () => {
     expect(nextPhotoStageSpeed('normal')).toBe('fast')
     expect(nextPhotoStageSpeed('fast')).toBe('slow')
     expect(PHOTO_STAGE_SPEED_MS.fast).toBeLessThan(PHOTO_STAGE_SPEED_MS.normal)
+  })
+})
+
+describe('shufflePhotoOrder', () => {
+  const items = [
+    { id: 'a' },
+    { id: 'b' },
+    { id: 'c' },
+    { id: 'd' },
+  ]
+
+  it('embaralha com o gerador dado e mantém a atual na frente', () => {
+    let calls = 0
+    const sequence = [0, 0, 0]
+    const random = () => sequence[calls++] ?? 0
+    const shuffled = shufflePhotoOrder(items, 'c', random)
+    expect(shuffled[0]?.id).toBe('c')
+    expect(shuffled.map((item) => item.id).sort()).toEqual(['a', 'b', 'c', 'd'])
+  })
+})
+
+describe('syncPhotoStageOrder', () => {
+  it('com shuffle off devolve a lista do servidor', () => {
+    const prev = [{ id: 'b' }, { id: 'a' }]
+    const next = [{ id: 'a' }, { id: 'b' }, { id: 'c' }]
+    expect(syncPhotoStageOrder(prev, next, false)).toEqual(next)
+  })
+
+  it('com shuffle on preserva ordem e anexa novas', () => {
+    const prev = [{ id: 'b' }, { id: 'a' }]
+    const next = [
+      { id: 'a', n: 1 },
+      { id: 'b', n: 2 },
+      { id: 'c', n: 3 },
+    ]
+    expect(syncPhotoStageOrder(prev, next, true).map((item) => item.id)).toEqual([
+      'b',
+      'a',
+      'c',
+    ])
   })
 })

@@ -140,6 +140,9 @@ export const copy = {
   hostPhotoSpeed: 'Velocidade',
   hostPhotoSpeedLabel: (speed: 'slow' | 'normal' | 'fast') =>
     speed === 'slow' ? 'Lenta' : speed === 'fast' ? 'Rápida' : 'Normal',
+  hostPhotoShuffle: 'Aleatório',
+  hostPhotoShuffleOn: 'Aleatório ligado',
+  hostPhotoShuffleOff: 'Ordem normal',
   hostPhotoStrip: 'Últimas e próximas fotos',
   hostPhotoThumbCurrent: 'Foto atual',
   hostPhotoThumbJump: (n: number) => `Ir pra foto ${n}`,

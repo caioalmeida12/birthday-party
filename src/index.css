@@ -1849,6 +1849,12 @@ main {
   margin-left: auto;
 }
 
+.host-photo-ctrl-active {
+  color: #0c1511;
+  background: color-mix(in srgb, #f7e7c2 88%, transparent);
+  border-color: color-mix(in srgb, #f7e7c2 70%, transparent);
+}
+
 .host-photo-strip {
   flex: 0 0 auto;
   display: flex;
