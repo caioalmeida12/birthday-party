@@ -20,6 +20,7 @@ type Props = {
 }
 
 type CompanyChoice = 'alone' | 'with'
+type RsvpPhase = 'attend' | 'company' | 'count'
 
 const STEPS = 4
 
@@ -28,8 +29,7 @@ export function WelcomeGuide({ initialName = '', onFinish }: Props) {
   const [draft, setDraft] = useState(initialName)
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
-  const [attending, setAttending] = useState<boolean | null>(null)
-  const [company, setCompany] = useState<CompanyChoice | null>(null)
+  const [rsvpPhase, setRsvpPhase] = useState<RsvpPhase>('attend')
   const [plusOnes, setPlusOnes] = useState(1)
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
@@ -114,23 +114,12 @@ export function WelcomeGuide({ initialName = '', onFinish }: Props) {
     goNext()
   }
 
-  async function submitRsvp(event: FormEvent) {
-    event.preventDefault()
+  async function finishRsvp(attending: boolean, company: CompanyChoice | null, count: number) {
     const name = requireName()
     if (!name) {
       setStep(1)
       return
     }
-    if (attending === null) {
-      setError(copy.rsvpError)
-      return
-    }
-    if (attending && company === null) {
-      setError(copy.rsvpCompanyError)
-      return
-    }
-
-    const resolvedPlusOnes = attending ? plusOnesFromCompany(company, plusOnes) : 0
 
     setSubmitting(true)
     setError(null)
@@ -140,12 +129,30 @@ export function WelcomeGuide({ initialName = '', onFinish }: Props) {
         goToPhotos: Boolean(photoFile),
         photoFile,
         attending,
-        plusOnes: resolvedPlusOnes,
+        plusOnes: attending ? plusOnesFromCompany(company, count) : 0,
       })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não deu pra salvar.')
       setSubmitting(false)
     }
+  }
+
+  function onRsvpBack() {
+    setError(null)
+    if (rsvpPhase === 'count') {
+      setRsvpPhase('company')
+      return
+    }
+    if (rsvpPhase === 'company') {
+      setRsvpPhase('attend')
+      return
+    }
+    goBack()
+  }
+
+  function onSubmitCount(event: FormEvent) {
+    event.preventDefault()
+    void finishRsvp(true, 'with', plusOnes)
   }
 
   return (
@@ -309,97 +316,108 @@ export function WelcomeGuide({ initialName = '', onFinish }: Props) {
         ) : null}
 
         {step === 3 ? (
-          <div className="welcome-pane" key="rsvp">
+          <div className="welcome-pane" key={`rsvp-${rsvpPhase}`}>
             <h1 id="welcome-guide-title" className="welcome-guide-title">
-              {copy.rsvpTitle}
+              {rsvpPhase === 'attend'
+                ? copy.rsvpTitle
+                : rsvpPhase === 'company'
+                  ? copy.rsvpCompanyLabel
+                  : copy.rsvpPlusLabel}
             </h1>
-            <p className="welcome-guide-lead">{copy.rsvpLead}</p>
-            <form className="form welcome-name-form" onSubmit={(event) => void submitRsvp(event)}>
-              <div className="rsvp-choice" role="group" aria-label={copy.rsvpTitle}>
+            <p className="welcome-guide-lead">
+              {rsvpPhase === 'attend'
+                ? copy.rsvpLead
+                : rsvpPhase === 'company'
+                  ? copy.rsvpCompanyLead
+                  : copy.rsvpPlusHint}
+            </p>
+
+            {rsvpPhase === 'attend' ? (
+              <div className="rsvp-choice rsvp-choice-stack" role="group" aria-label={copy.rsvpTitle}>
                 <button
                   type="button"
-                  className={`btn rsvp-choice-btn${attending === true ? ' rsvp-choice-on' : ' btn-ghost'}`}
-                  aria-pressed={attending === true}
+                  className="btn btn-primary btn-lg rsvp-choice-btn"
+                  disabled={submitting}
                   onClick={() => {
-                    setAttending(true)
                     setError(null)
+                    setRsvpPhase('company')
                   }}
                 >
                   {copy.rsvpYes}
                 </button>
                 <button
                   type="button"
-                  className={`btn rsvp-choice-btn${attending === false ? ' rsvp-choice-on' : ' btn-ghost'}`}
-                  aria-pressed={attending === false}
+                  className="btn btn-ghost btn-lg rsvp-choice-btn"
+                  disabled={submitting}
                   onClick={() => {
-                    setAttending(false)
-                    setCompany(null)
-                    setPlusOnes(1)
-                    setError(null)
+                    void finishRsvp(false, null, 0)
                   }}
                 >
-                  {copy.rsvpNo}
+                  {submitting ? copy.rsvpSubmitting : copy.rsvpNo}
                 </button>
               </div>
+            ) : null}
 
-              {attending === true ? (
-                <div className="rsvp-choice" role="group" aria-label={copy.rsvpCompanyLabel}>
-                  <button
-                    type="button"
-                    className={`btn rsvp-choice-btn${company === 'alone' ? ' rsvp-choice-on' : ' btn-ghost'}`}
-                    aria-pressed={company === 'alone'}
-                    onClick={() => {
-                      setCompany('alone')
-                      setPlusOnes(1)
-                      setError(null)
-                    }}
-                  >
-                    {copy.rsvpAlone}
-                  </button>
-                  <button
-                    type="button"
-                    className={`btn rsvp-choice-btn${company === 'with' ? ' rsvp-choice-on' : ' btn-ghost'}`}
-                    aria-pressed={company === 'with'}
-                    onClick={() => {
-                      setCompany('with')
-                      setPlusOnes((current) => Math.max(1, current))
-                      setError(null)
-                    }}
-                  >
-                    {copy.rsvpWith}
-                  </button>
-                </div>
-              ) : null}
+            {rsvpPhase === 'company' ? (
+              <div className="rsvp-choice rsvp-choice-stack" role="group" aria-label={copy.rsvpCompanyLabel}>
+                <button
+                  type="button"
+                  className="btn btn-primary btn-lg rsvp-choice-btn"
+                  disabled={submitting}
+                  onClick={() => {
+                    void finishRsvp(true, 'alone', 0)
+                  }}
+                >
+                  {submitting ? copy.rsvpSubmitting : copy.rsvpAlone}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-lg rsvp-choice-btn"
+                  disabled={submitting}
+                  onClick={() => {
+                    setError(null)
+                    setPlusOnes(1)
+                    setRsvpPhase('count')
+                  }}
+                >
+                  {copy.rsvpWith}
+                </button>
+              </div>
+            ) : null}
 
-              {attending === true && company === 'with' ? (
+            {rsvpPhase === 'count' ? (
+              <form className="form welcome-name-form" onSubmit={onSubmitCount}>
                 <label>
-                  {copy.rsvpPlusLabel}
+                  {copy.rsvpPlusField}
                   <input
                     type="number"
                     min={1}
                     max={30}
                     inputMode="numeric"
+                    autoFocus
                     value={plusOnes}
                     onChange={(event) => {
                       const next = Number(event.target.value)
                       setPlusOnes(Number.isFinite(next) ? Math.max(1, Math.min(30, next)) : 1)
                     }}
                   />
-                  <span className="field-hint">{copy.rsvpPlusHint}</span>
                 </label>
-              ) : null}
-
-              {error ? <p className="form-msg form-msg-error">{error}</p> : null}
-
-              <div className="welcome-nav">
-                <button className="btn btn-ghost" type="button" onClick={goBack} disabled={submitting}>
-                  {copy.rsvpBack}
-                </button>
-                <button className="btn btn-primary" type="submit" disabled={submitting}>
+                <button className="btn btn-primary btn-lg welcome-full" type="submit" disabled={submitting}>
                   {submitting ? copy.rsvpSubmitting : copy.rsvpSubmit}
                 </button>
-              </div>
-            </form>
+              </form>
+            ) : null}
+
+            {error ? <p className="form-msg form-msg-error">{error}</p> : null}
+
+            <button
+              className="welcome-back-link"
+              type="button"
+              onClick={onRsvpBack}
+              disabled={submitting}
+            >
+              {copy.rsvpBack}
+            </button>
           </div>
         ) : null}
       </div>

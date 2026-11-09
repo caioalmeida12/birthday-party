@@ -396,6 +396,11 @@ a:hover {
   gap: 0.65rem;
 }
 
+.rsvp-choice-stack {
+  grid-template-columns: 1fr;
+  margin-top: 0.35rem;
+}
+
 .rsvp-choice-btn {
   width: 100%;
 }
