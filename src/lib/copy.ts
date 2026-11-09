@@ -23,6 +23,10 @@ export const copy = {
   inviteMaps: 'Ver no mapa',
   inviteNext: 'Continuar',
 
+  navHopLabel: 'Ir pra outra página',
+  navHopPrev: (label: string) => `Anterior: ${label}`,
+  navHopNext: (label: string) => `Próxima: ${label}`,
+
   hostPinTitle: 'Área do anfitrião',
   hostPinLead: 'Só pra quem vai tocar na caixa.',
   hostPinLabel: 'Senha',

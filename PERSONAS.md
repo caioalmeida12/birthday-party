@@ -9,7 +9,7 @@ Tom dos textos: mensagem curta, fato primeiro. Sem “você está convidado pra 
 Entende: foto, música, gostei, enviar, fila, impressão, decoração, conversa, mural.
 Não usa: playlist, player, skip, upvote, link (como jargão). Não distingue “foto pra decoração” vs “foto pra TV”.
 
-QR da TV: foto → `/fotos`; música → fila. Não quer cair numa home cheia de botões. Conversa só depois do guide-in (já se identificou). No RSVP, “vou sozinho” vs “vou levar alguém” antes de quantidade.
+QR da TV: foto → `/fotos`; música → fila. Não quer cair numa home cheia de botões. Conversa só depois do guide-in (já se identificou). No RSVP, “vou sozinho” vs “vou levar alguém” antes de quantidade. Depois de entrar numa página, precisa achar a outra sem caçar — emoji na navbar + atalho lateral.
 
 ## Anfitrião
 

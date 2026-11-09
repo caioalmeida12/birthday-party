@@ -1,13 +1,17 @@
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { PARTY_NAME } from '../lib/config'
+import { guestNavItems, isGuestHopPath } from '../lib/guestPages'
 import { ConfigBanner } from './ConfigBanner'
 import { GuestSessionProvider, useGuestSession } from './GuestSession'
+import { GuestSideHop } from './GuestSideHop'
 
 function Shell() {
   const { name, ready } = useGuestSession()
   const location = useLocation()
   const hostTv = location.pathname === '/anfitriao' || location.pathname.endsWith('/anfitriao')
   const cameraSolo = location.pathname === '/camera' || location.pathname.endsWith('/camera')
+  const hopPages = isGuestHopPath(location.pathname)
+  const navItems = guestNavItems(ready)
 
   if (hostTv) {
     return (
@@ -21,7 +25,9 @@ function Shell() {
   }
 
   return (
-    <div className={`app-shell${cameraSolo ? ' app-shell-camera' : ''}`}>
+    <div
+      className={`app-shell${cameraSolo ? ' app-shell-camera' : ''}${hopPages ? ' app-shell-hopping' : ''}`}
+    >
       <ConfigBanner />
       {!cameraSolo ? (
         <header className="site-header">
@@ -30,20 +36,18 @@ function Shell() {
           </Link>
           <div className="site-header-end">
             <nav className="site-nav" aria-label="Principal">
-              <NavLink to="/musicas" className={({ isActive }) => (isActive ? 'active' : undefined)}>
-                Músicas
-              </NavLink>
-              {ready ? (
+              {navItems.map((item) => (
                 <NavLink
-                  to="/conversa"
+                  key={item.path}
+                  to={item.path}
                   className={({ isActive }) => (isActive ? 'active' : undefined)}
                 >
-                  Conversa
+                  <span className="site-nav-emoji" aria-hidden="true">
+                    {item.emoji}
+                  </span>
+                  <span>{item.label}</span>
                 </NavLink>
-              ) : null}
-              <NavLink to="/fotos" className={({ isActive }) => (isActive ? 'active' : undefined)}>
-                Fotos
-              </NavLink>
+              ))}
             </nav>
             {ready && name ? (
               <p className="guest-chip" title="Seu apelido neste celular">
@@ -53,6 +57,7 @@ function Shell() {
           </div>
         </header>
       ) : null}
+      {hopPages ? <GuestSideHop pathname={location.pathname} ready={ready} /> : null}
       <main>
         <Outlet />
       </main>
