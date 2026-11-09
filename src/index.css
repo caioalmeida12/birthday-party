@@ -705,53 +705,69 @@ a:hover {
 }
 
 /* Abas coladas na borda — “página do livro” ao lado. */
-.guest-hop {
+a.guest-hop,
+a.guest-hop:link,
+a.guest-hop:visited,
+a.guest-hop:hover,
+a.guest-hop:active,
+a.guest-hop:focus {
   pointer-events: auto;
   position: fixed;
   top: 50%;
   z-index: 9;
   transform: translateY(-50%);
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
   width: 2.55rem;
   height: 4.6rem;
-  padding: 0;
+  margin: 0;
   color: var(--cream);
   text-decoration: none;
   background:
     linear-gradient(180deg, rgba(240, 180, 41, 0.16), rgba(13, 31, 24, 0.92) 38%, rgba(13, 31, 24, 0.92));
   border: 1px solid rgba(247, 231, 194, 0.2);
   box-shadow: none;
+  outline: none;
 }
 
 .guest-hop-prev {
   left: 0;
-  padding-left: max(0.1rem, env(safe-area-inset-left));
+  /* Empurra o ícone pro lóbulo arredondado (espelhado no next). */
+  padding: 0 0.45rem 0 max(0.2rem, env(safe-area-inset-left));
   border-left: none;
   border-radius: 0 999px 999px 0;
 }
 
 .guest-hop-next {
   right: 0;
-  padding-right: max(0.1rem, env(safe-area-inset-right));
+  padding: 0 max(0.2rem, env(safe-area-inset-right)) 0 0.45rem;
   border-right: none;
   border-radius: 999px 0 0 999px;
 }
 
 .guest-hop-icon {
+  display: block;
+  width: 1.15rem;
+  height: 1.15rem;
+  margin: 0;
   font-size: 1.15rem;
-  line-height: 1;
+  line-height: 1.15rem;
+  text-align: center;
 }
 
-.guest-hop:hover,
-.guest-hop:focus-visible {
-  color: var(--amber);
-  border-color: rgba(240, 180, 41, 0.5);
-  background:
-    linear-gradient(180deg, rgba(240, 180, 41, 0.28), rgba(18, 40, 30, 0.96) 40%, rgba(18, 40, 30, 0.96));
+/* Hover só com mouse fino — no toque o :hover gruda e deixava o ícone amarelo. */
+@media (hover: hover) and (pointer: fine) {
+  a.guest-hop:hover {
+    color: var(--cream);
+    border-color: rgba(240, 180, 41, 0.5);
+    background:
+      linear-gradient(180deg, rgba(240, 180, 41, 0.28), rgba(18, 40, 30, 0.96) 40%, rgba(18, 40, 30, 0.96));
+  }
 }
 
-.guest-hop:focus-visible {
+a.guest-hop:focus-visible {
   outline: 2px solid var(--amber);
   outline-offset: -2px;
 }
@@ -761,13 +777,21 @@ a:hover {
 }
 
 @media (max-width: 420px) {
-  .guest-hop {
+  a.guest-hop,
+  a.guest-hop:link,
+  a.guest-hop:visited,
+  a.guest-hop:hover,
+  a.guest-hop:active,
+  a.guest-hop:focus {
     width: 2.25rem;
     height: 4.2rem;
   }
 
   .guest-hop-icon {
+    width: 1.05rem;
+    height: 1.05rem;
     font-size: 1.05rem;
+    line-height: 1.05rem;
   }
 
   .app-shell-hopping main {

@@ -23,6 +23,9 @@ function HopLink({
       className={`guest-hop guest-hop-${side}`}
       aria-label={hint}
       title={hint}
+      onClick={(event) => {
+        event.currentTarget.blur()
+      }}
     >
       <i className={`fa-solid ${item.icon} guest-hop-icon`} aria-hidden="true" />
     </Link>
