@@ -26,10 +26,13 @@ function HopLink({
       aria-label={hint}
       title={hint}
     >
-      <span className="guest-hop-emoji" aria-hidden="true">
-        {item.emoji}
+      <span className="guest-hop-edge" aria-hidden="true" />
+      <span className="guest-hop-body">
+        <span className="guest-hop-emoji" aria-hidden="true">
+          {item.emoji}
+        </span>
+        <span className="guest-hop-label">{item.label}</span>
       </span>
-      <span className="guest-hop-label">{item.label}</span>
     </Link>
   )
 }
