@@ -1836,6 +1836,51 @@ main {
   margin-bottom: 0.35rem;
 }
 
+.now-playing-strip {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 0.75rem 1.25rem;
+  align-items: start;
+}
+
+.now-playing-current,
+.now-playing-next {
+  min-width: 0;
+}
+
+.now-playing-next {
+  padding-left: 1rem;
+  border-left: 1px solid rgba(247, 231, 194, 0.14);
+}
+
+.now-playing-next-title {
+  margin: 0.35rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  font-weight: 700;
+  line-height: 1.2;
+  color: rgba(247, 231, 194, 0.88);
+}
+
+.now-playing-next-empty {
+  margin: 0.35rem 0 0;
+  font-size: 0.92rem;
+}
+
+@media (max-width: 720px) {
+  .now-playing-strip {
+    grid-template-columns: 1fr;
+    gap: 0.55rem;
+  }
+
+  .now-playing-next {
+    padding-left: 0;
+    padding-top: 0.45rem;
+    border-left: none;
+    border-top: 1px solid rgba(247, 231, 194, 0.14);
+  }
+}
+
 .host-audio-hint {
   margin: 0;
   font-size: 0.85rem;

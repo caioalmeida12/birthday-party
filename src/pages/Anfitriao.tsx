@@ -438,6 +438,7 @@ function AnfitriaoHost() {
 
   const wakeLockSupported = typeof navigator !== 'undefined' && 'wakeLock' in navigator
   const upcoming = queueView.upcoming
+  const nextUp = upcoming[0] ?? null
 
   const transport = (
     <div className="host-transport">
@@ -463,9 +464,22 @@ function AnfitriaoHost() {
 
       {started && current ? (
         <div className="now-playing now-playing-strip">
-          <p className="now-playing-label">Agora</p>
-          <h2>{current.title}</h2>
-          <p className="song-artist">{current.artist}</p>
+          <div className="now-playing-current">
+            <p className="now-playing-label">{copy.hostNowLabel}</p>
+            <h2>{current.title}</h2>
+            <p className="song-artist">{current.artist}</p>
+          </div>
+          <div className="now-playing-next" aria-live="polite">
+            <p className="now-playing-label">{copy.hostNextLabel}</p>
+            {nextUp ? (
+              <>
+                <p className="now-playing-next-title">{nextUp.title}</p>
+                <p className="song-artist">{nextUp.artist}</p>
+              </>
+            ) : (
+              <p className="now-playing-next-empty muted">{copy.hostNextEmpty}</p>
+            )}
+          </div>
         </div>
       ) : null}
 
